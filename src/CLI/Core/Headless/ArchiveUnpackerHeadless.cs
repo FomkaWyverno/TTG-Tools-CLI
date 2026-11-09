@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using TTG_Tools.CLI.Core.Commands.Helpers;
 using TTG_Tools.CLI.Core.Infrastructure;
 
 namespace TTG_Tools.CLI.Core.Headless
@@ -60,6 +61,12 @@ namespace TTG_Tools.CLI.Core.Headless
 
             return list;
         }
+
+        public void UnpackArchive(string archivePath, string outputDir, string gameName = null)
+        {
+            OpenArchive(archivePath, gameName);
+            _archiveUnpacker.UnpackArchiveClick(outputDir).WaitWithDoEvents();
+        }
         
         /// <summary>
         /// Синхронно відкриває файл архіву в асинхронному середовищі розпакувальника.
@@ -73,19 +80,7 @@ namespace TTG_Tools.CLI.Core.Headless
             {
                 ChooseGame(gameName);
             }
-            
-            var task = _archiveUnpacker.OpenArchiveFileAsync(archivePath);
-            
-            while(!task.IsCompleted)
-            {
-                Application.DoEvents();
-                System.Threading.Thread.Sleep(100);
-            }
-
-            if (task.IsFaulted && task.Exception != null)
-            {
-                throw task.Exception;
-            }
+            _archiveUnpacker.OpenArchiveFileAsync(archivePath).WaitWithDoEvents();
         }
         
         /// <summary>

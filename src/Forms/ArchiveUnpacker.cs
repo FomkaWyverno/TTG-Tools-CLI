@@ -2503,7 +2503,12 @@ namespace TTG_Tools
             }
         }
 
-        private async void unpackToolStripMenuItem_Click(object sender, EventArgs e)
+        public Task UnpackArchiveClick(string outputDir)
+        {
+            return UnpackArchiveClickCore(outputDir);
+        }
+
+        private async Task UnpackArchiveClickCore(string outputDir = null)
         {
             decrypt = decryptLuaCB.Checked;
             key = MainMenu.gamelist[gameListCB.SelectedIndex].key;
@@ -2530,7 +2535,7 @@ namespace TTG_Tools
             }
             else if (ttarch2 != null)
             {
-                string selectedFolder = SelectFolder();
+                string selectedFolder = outputDir ?? SelectFolder();
 
                 if (!string.IsNullOrEmpty(selectedFolder))
                 {
@@ -2544,6 +2549,11 @@ namespace TTG_Tools
                         "Nothing to extract. Please open ttarch/ttarch2/obb file and then extract."),
                     Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+        }
+        
+        private async void unpackToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            await UnpackArchiveClickCore();
         }
 
         private void fileFormatsCB_SelectedIndexChanged(object sender, EventArgs e)

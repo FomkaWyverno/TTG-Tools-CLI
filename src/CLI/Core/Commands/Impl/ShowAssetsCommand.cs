@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using Spectre.Console;
+using TTG_Tools.CLI.Core.Commands.Helpers;
 using TTG_Tools.CLI.Core.Headless;
 
 namespace TTG_Tools.CLI.Core.Commands.Impl
@@ -27,6 +28,7 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
         {
             if (args.Length < 1 || !File.Exists(args[0]))
             {
+                Console.WriteLine(@"Uncorrected arguments provided.");
                 HelpCommand.Run(args);
                 return;
             }
@@ -62,32 +64,8 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
             }
             catch (AggregateException aggEx)
             {
-                ReportArchiveErrorOrThrow(aggEx);
+                ArchiveErrorHelper.HandleArchiveError(aggEx);
             }
-        }
-
-
-        /// <summary>
-        ///     Обробляє помилки, що виникли під час відкриття архіву, і перевіряє їх на наявність винятків типу
-        ///     ArgumentOutOfRangeException.
-        /// </summary>
-        /// <param name="aggEx">Обгортка агрегованих винятків асинхронної задачі.</param>
-        /// <exception cref="AggregateException">Кидає виняток далі, якщо він не належить до очікуваних.</exception>
-        private void ReportArchiveErrorOrThrow(AggregateException aggEx)
-        {
-            // Шукаємо серед внутрішніх винятків наш ArgumentOutOfRangeException
-            var isOutOfRange = false;
-            foreach (var inner in aggEx.InnerExceptions)
-                if (inner is ArgumentOutOfRangeException rangeEx)
-                {
-                    isOutOfRange = true;
-                    Console.WriteLine(@"Program cannot auto-detect game type game name manual");
-                    break;
-                }
-
-            if (!isOutOfRange)
-                // Якщо це була якась інша помилка — кидаємо її далі
-                throw aggEx;
         }
     }
 }

@@ -130,10 +130,13 @@
     <Compile Include="CLI\Core\CliRouter.cs" />
     <Compile Include="CLI\Core\Commands\CliCommands.cs" />
     <Compile Include="CLI\Core\Commands\CommandAttribute.cs" />
+    <Compile Include="CLI\Core\Commands\Helpers\ArchiveErrorHelper.cs" />
+    <Compile Include="CLI\Core\Commands\Helpers\TaskExtensions.cs" />
     <Compile Include="CLI\Core\Commands\ICommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\HelpCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\SupportedGamesCommand.cs" />
+    <Compile Include="CLI\Core\Commands\Impl\UnpackArchiveCommand.cs" />
     <Compile Include="CLI\Core\Headless\ArchiveUnpackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\MainMenuHeadless.cs" />
     <Compile Include="CLI\Core\Infrastructure\AssetInfo.cs" />
