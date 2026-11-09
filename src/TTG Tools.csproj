@@ -136,6 +136,7 @@
     <Compile Include="CLI\Core\Commands\SupportedGamesCommand.cs" />
     <Compile Include="CLI\Core\Headless\ArchiveUnpackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\MainMenuHeadless.cs" />
+    <Compile Include="CLI\Core\Infrastructure\AssetInfo.cs" />
     <Compile Include="CLI\Core\UiAutomation.cs" />
     <Compile Include="Forms\About.cs">
       <SubType>Form</SubType>

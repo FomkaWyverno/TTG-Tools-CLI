@@ -2,6 +2,7 @@
 using System.IO;
 using System.Windows.Forms;
 using Spectre.Console;
+using TTG_Tools.CLI.Core.Headless;
 
 namespace TTG_Tools.CLI.Core.Commands
 {
@@ -47,67 +48,28 @@ namespace TTG_Tools.CLI.Core.Commands
         /// <param name="gameName">Назва гри для ідентифікації структури (може бути null).</param>
         private void ShowAssets(string archivePath, string gameName)
         {
-            var archiveUnpacker = new ArchiveUnpacker();
-
-            if (gameName != null)
+            try
             {
-                ChooseGame(archiveUnpacker, gameName);
+                var assetInfos = ArchiveUnpackerHeadless.Instance.GetAssetInfos(archivePath, gameName);
+
+                var table = new Table();
+                table.Border(TableBorder.Ascii);
+
+
+                table.AddColumns("FileName", "FileType", "FileSize");
+
+                foreach (var item in assetInfos)
+                {
+                    table.AddRow(item.FileName, item.FileType, item.FileSize);
+                }
+
+                AnsiConsole.Write(table);
+            }
+            catch (AggregateException aggEx)
+            {
+                ReportArchiveErrorOrThrow(aggEx);
             }
             
-            var task = archiveUnpacker.OpenArchiveFileAsync(archivePath);
-            
-            while(!task.IsCompleted)
-            {
-                Application.DoEvents();
-                System.Threading.Thread.Sleep(100);
-            }
-
-            if (task.IsFaulted)
-            {
-                ReportArchiveErrorOrThrow(task.Exception);
-                return;
-            }
-            
-            
-            var grid = archiveUnpacker.FilesDataGridView;
-
-            var table = new Table();
-            table.Border(TableBorder.Ascii);
-            const int fileNameIdx = 1;
-            const int fileTypeIdx = 2;
-            const int fileSizeIdx = 3;
-            
-            table.AddColumns("FileName", "FileType", "FileSize");
-            
-            foreach (DataGridViewRow row in grid.Rows)
-            {
-                if (row.IsNewRow) continue;
-
-                var fileName = row.Cells[fileNameIdx].Value.ToString();
-                var fileType = row.Cells[fileTypeIdx].Value.ToString();
-                var fileSize = row.Cells[fileSizeIdx].Value.ToString();
-                
-                table.AddRow(fileName, fileType, fileSize);
-            }
-            
-            AnsiConsole.Write(table);
-        }
-
-        
-        /// <summary>
-        /// Вибирає гру у випадаючому списку розпакувальника за її назвою.
-        /// </summary>
-        /// <param name="archUnpacker">Екземпляр розпакувальника архівів.</param>
-        /// <param name="gameName">Назва гри для пошуку.</param>
-        private void ChooseGame(ArchiveUnpacker archUnpacker, string gameName)
-        {
-            var gameList = MainMenu.gamelist;
-            var idx = gameList.FindIndex(key => key.gamename ==  gameName);
-
-            if (idx != -1)
-            {
-                archUnpacker.GameListCB.SelectedIndex = idx;
-            }
         }
         
         
