@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Reflection;
 
-namespace TTG_Tools.CLI.Core.Commands
+namespace TTG_Tools.CLI.Core.Commands.Impl
 {
     [Command("--help", "Print help information.")]
     public class HelpCommand : ICommand
@@ -16,7 +16,7 @@ namespace TTG_Tools.CLI.Core.Commands
                 var type = command.GetType();
                 var cmd = type.GetCustomAttribute<CommandAttribute>();
                 if (cmd == null) continue;
-                
+
                 Console.WriteLine($@"{cmd.Name}: {cmd.Description}");
             }
         }

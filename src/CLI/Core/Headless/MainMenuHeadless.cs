@@ -1,17 +1,30 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace TTG_Tools.CLI.Core.Headless
 {
-    public class MainMenuHeadless
+    public sealed class MainMenuHeadless
     {
-        public static void ShowSupportedGames()
+        // Потокобезпечний Lazy-ініціалізатор для Singleton
+        private static readonly Lazy<MainMenuHeadless> _instance = 
+            new Lazy<MainMenuHeadless>(() => new MainMenuHeadless());
+
+        /// <summary>
+        /// Глобальна точка доступу до єдиного екземпляра класу.
+        /// </summary>
+        public static MainMenuHeadless Instance => _instance.Value;
+
+        private MainMenuHeadless()
         {
             MainMenu.InitializeGameList();
-
-            foreach (var item in MainMenu.gamelist)
-            {
-                Console.WriteLine($@"- {item.gamename}");
-            }
+        }
+        
+        public List<string> GetSupportedGames()
+        {
+            return MainMenu.gamelist
+                .Select(item => item.gamename)
+                .ToList();
         }
     }
 }

@@ -1,28 +1,26 @@
 ﻿using System;
 using System.IO;
-using System.Windows.Forms;
 using Spectre.Console;
 using TTG_Tools.CLI.Core.Headless;
 
-namespace TTG_Tools.CLI.Core.Commands
+namespace TTG_Tools.CLI.Core.Commands.Impl
 {
     /// <summary>
-    /// Команда для виведення всіх активів (файлів) з архіву у вигляді форматованої таблиці в консолі.
+    ///     Команда для виведення всіх активів (файлів) з архіву у вигляді форматованої таблиці в консолі.
     /// </summary>
-    [Command("--show-assets", 
+    [Command("--show-assets",
         @"<archive-path> [<game-name>] | Show all assets in archive.
                     <archive-path>: Absolute path to Archive file.
                     [<game-name>]: Game Name. Optional parameter.")]
     public class ShowAssetsCommand : ICommand
     {
-        
         /// <summary>
-        /// Посилання на допоміжну команду довідки (Help).
+        ///     Посилання на допоміжну команду довідки (Help).
         /// </summary>
         private ICommand HelpCommand => CliRouter.Instance.Commands["--help"];
 
         /// <summary>
-        /// Головний метод виконання команди, який перевіряє вхідні аргументи та запускає процес зчитування архіву.
+        ///     Головний метод виконання команди, який перевіряє вхідні аргументи та запускає процес зчитування архіву.
         /// </summary>
         /// <param name="args">Масив аргументів командного рядка, де args[0] — шлях до архіву, args[1] (опціонально) — назва гри.</param>
         public void Run(string[] args)
@@ -35,14 +33,14 @@ namespace TTG_Tools.CLI.Core.Commands
 
             var archivePath = args[0];
             var gameName = args.Length > 1 ? args[1] : null;
-            
+
             MainMenu.InitializeGameList();
             ShowAssets(archivePath, gameName);
         }
-        
+
 
         /// <summary>
-        /// Асинхронно відкриває файл архіву, витягує дані та виводить їх у вигляді кольорової таблиці через Spectre.Console.
+        ///     Асинхронно відкриває файл архіву, витягує дані та виводить їх у вигляді кольорової таблиці через Spectre.Console.
         /// </summary>
         /// <param name="archivePath">Абсолютний шлях до файлу архіву.</param>
         /// <param name="gameName">Назва гри для ідентифікації структури (може бути null).</param>
@@ -58,10 +56,7 @@ namespace TTG_Tools.CLI.Core.Commands
 
                 table.AddColumns("FileName", "FileType", "FileSize");
 
-                foreach (var item in assetInfos)
-                {
-                    table.AddRow(item.FileName, item.FileType, item.FileSize);
-                }
+                foreach (var item in assetInfos) table.AddRow(item.FileName, item.FileType, item.FileSize);
 
                 AnsiConsole.Write(table);
             }
@@ -69,34 +64,30 @@ namespace TTG_Tools.CLI.Core.Commands
             {
                 ReportArchiveErrorOrThrow(aggEx);
             }
-            
         }
-        
-        
+
+
         /// <summary>
-        /// Обробляє помилки, що виникли під час відкриття архіву, і перевіряє їх на наявність винятків типу ArgumentOutOfRangeException.
+        ///     Обробляє помилки, що виникли під час відкриття архіву, і перевіряє їх на наявність винятків типу
+        ///     ArgumentOutOfRangeException.
         /// </summary>
         /// <param name="aggEx">Обгортка агрегованих винятків асинхронної задачі.</param>
         /// <exception cref="AggregateException">Кидає виняток далі, якщо він не належить до очікуваних.</exception>
         private void ReportArchiveErrorOrThrow(AggregateException aggEx)
         {
             // Шукаємо серед внутрішніх винятків наш ArgumentOutOfRangeException
-            bool isOutOfRange = false;
+            var isOutOfRange = false;
             foreach (var inner in aggEx.InnerExceptions)
-            {
                 if (inner is ArgumentOutOfRangeException rangeEx)
                 {
                     isOutOfRange = true;
                     Console.WriteLine(@"Program cannot auto-detect game type game name manual");
                     break;
                 }
-            }
 
             if (!isOutOfRange)
-            {
                 // Якщо це була якась інша помилка — кидаємо її далі
                 throw aggEx;
-            }
         }
     }
 }
