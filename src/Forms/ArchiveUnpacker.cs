@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Windows.Forms;
 using TTG_Tools.ClassesStructs;
 using System.Threading.Tasks;
-using System.Runtime.Remoting.Messaging;
 using Microsoft.WindowsAPICodePack.Dialogs;
 using System.Drawing;
 
@@ -15,6 +14,9 @@ namespace TTG_Tools
 {
     public partial class ArchiveUnpacker : Form
     {
+        public ComboBox GameListCB => gameListCB;
+        public DataGridView FilesDataGridView => filesDataGridView;
+
         public ArchiveUnpacker()
         {
             InitializeComponent();
@@ -37,6 +39,9 @@ namespace TTG_Tools
             WireArchiveDropTargets(this);
             ShowPreviewMessage("");
             CleanupStaleDragFolders();
+
+            // CLI
+            ArchiveUnpacker_Load(this, EventArgs.Empty);
         }
 
         private static ClassesStructs.TtarchClass ttarch;
@@ -106,25 +111,30 @@ namespace TTG_Tools
             int labelGap = 8;
             int controlGap = 12;
             int maxRight = Math.Max(520, groupBox1.Left - 14);
-            int labelWidth = Math.Max(Math.Max(label2.PreferredWidth, label1.PreferredWidth), searchFilesByNameCB.PreferredSize.Width);
+            int labelWidth = Math.Max(Math.Max(label2.PreferredWidth, label1.PreferredWidth),
+                searchFilesByNameCB.PreferredSize.Width);
             int controlLeft = left + labelWidth + labelGap;
 
             label2.SetBounds(left, 12, label2.PreferredWidth, label2.Height);
-            gameListCB.SetBounds(controlLeft, 9, Math.Max(220, Math.Min(300, maxRight - controlLeft)), gameListCB.Height);
+            gameListCB.SetBounds(controlLeft, 9, Math.Max(220, Math.Min(300, maxRight - controlLeft)),
+                gameListCB.Height);
 
             label1.SetBounds(left, 43, label1.PreferredWidth, label1.Height);
             int formatControlLeft = label1.Right + labelGap;
             fileFormatsCB.SetBounds(formatControlLeft, 40, 160, fileFormatsCB.Height);
 
-            searchFilesByNameCB.SetBounds(left, 74, searchFilesByNameCB.PreferredSize.Width, searchFilesByNameCB.Height);
+            searchFilesByNameCB.SetBounds(left, 74, searchFilesByNameCB.PreferredSize.Width,
+                searchFilesByNameCB.Height);
             searchTB.SetBounds(controlLeft, 72, 300, searchTB.Height);
             int searchButtonWidth = Math.Max(SearchButtonMinWidth,
-                Math.Min(SearchButtonMaxWidth, TextRenderer.MeasureText(searchBtn.Text ?? "", searchBtn.Font).Width + 24));
+                Math.Min(SearchButtonMaxWidth,
+                    TextRenderer.MeasureText(searchBtn.Text ?? "", searchBtn.Font).Width + 24));
             searchBtn.AutoSize = false;
             searchBtn.MinimumSize = new System.Drawing.Size(SearchButtonMinWidth, searchBtn.Height);
             searchBtn.MaximumSize = new System.Drawing.Size(SearchButtonMaxWidth, searchBtn.Height);
             searchBtn.SetBounds(searchTB.Right + controlGap, 70, searchButtonWidth, searchBtn.Height);
-            decryptLuaCB.SetBounds(searchBtn.Right + controlGap, 74, decryptLuaCB.PreferredSize.Width, decryptLuaCB.Height);
+            decryptLuaCB.SetBounds(searchBtn.Right + controlGap, 74, decryptLuaCB.PreferredSize.Width,
+                decryptLuaCB.Height);
 
             if (decryptLuaCB.Right > groupBox1.Left - 8)
             {
@@ -172,7 +182,9 @@ namespace TTG_Tools
                 if (ext == ".ttarch") return DetectTtarchKey(path);
                 if (ext == ".ttarch2" || ext == ".obb") return DetectTtarch2Key(path);
             }
-            catch { }
+            catch
+            {
+            }
 
             return -1;
         }
@@ -196,7 +208,9 @@ namespace TTG_Tools
 
                     if (IsSaneTtarchHeader(decrypted)) return g;
                 }
-                catch { }
+                catch
+                {
+                }
             }
 
             return -1;
@@ -298,7 +312,8 @@ namespace TTG_Tools
                     int nameLen = br.ReadInt32();
                     if (nameLen < 0 || nameLen > 4096 || ms.Position + nameLen > ms.Length) return false;
                     byte[] dirName = br.ReadBytes(nameLen);
-                    if (nameLen > 0 && !IsPrintableAscii(dirName)) return false; //some v2 archives start with an empty folder name
+                    if (nameLen > 0 && !IsPrintableAscii(dirName))
+                        return false; //some v2 archives start with an empty folder name
                 }
 
                 if (ms.Position + 4 > ms.Length) return false;
@@ -358,7 +373,9 @@ namespace TTG_Tools
 
                         if (IsSaneTtarch2Sub(decompressed)) return g;
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
 
@@ -397,16 +414,28 @@ namespace TTG_Tools
                     case 1: return DeflateDecompressor(bytes);
                     case 2: return OodleDecompressForDetect(bytes, chunkSize);
                     case -1:
-                        try { return ZLibDecompressor(bytes); }
+                        try
+                        {
+                            return ZLibDecompressor(bytes);
+                        }
                         catch
                         {
-                            try { return DeflateDecompressor(bytes); }
-                            catch { return OodleDecompressForDetect(bytes, chunkSize); }
+                            try
+                            {
+                                return DeflateDecompressor(bytes);
+                            }
+                            catch
+                            {
+                                return OodleDecompressForDetect(bytes, chunkSize);
+                            }
                         }
                     default: return ZLibDecompressor(bytes);
                 }
             }
-            catch { return null; }
+            catch
+            {
+                return null;
+            }
         }
 
         private static byte[] OodleDecompressForDetect(byte[] bytes, uint chunkSize)
@@ -414,7 +443,8 @@ namespace TTG_Tools
             long decBufSize = chunkSize > 0 ? (long)chunkSize : bytes.Length;
             byte[] outBuf = new byte[decBufSize];
 
-            int size = (int)OodleTools.Imports.OodleLZ_Decompress(bytes, bytes.Length, outBuf, decBufSize, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3); //fuzzSafe: wrong-key garbage must fail, not crash the process
+            int size = (int)OodleTools.Imports.OodleLZ_Decompress(bytes, bytes.Length, outBuf, decBufSize, 1, 0, 0, 0,
+                0, 0, 0, 0, 0, 3); //fuzzSafe: wrong-key garbage must fail, not crash the process
             if (size <= 0) return null;
 
             byte[] tmp = new byte[size];
@@ -441,11 +471,44 @@ namespace TTG_Tools
         private bool _isOpening;
         private string _pendingOpenPath;
 
+
+        /// <summary>
+        /// Публічний метод для відкриття архіву
+        /// </summary>
+        public Task OpenArchiveFileAsync(string filePath)
+        {
+            return OpenArchiveFileThrowAsync(filePath);
+        }
+
         //Drag-and-drop (and the Open menu) can fire a new open while the previous archive is still
         //loading on a background thread. Serialize the opens so two of them never race on the shared
         //ttarch/ttarch2 state: while one is loading, a new request just replaces the "pending" path
         //and the running loop picks it up when it finishes, so the last file dropped always wins.
         private async Task OpenArchiveFile(string filePath)
+        {
+            if (_isOpening)
+            {
+                _pendingOpenPath = filePath;
+                return;
+            }
+
+            _isOpening = true;
+            try
+            {
+                while (filePath != null)
+                {
+                    _pendingOpenPath = null;
+                    await OpenArchiveFileCoreUI(filePath);
+                    filePath = _pendingOpenPath;
+                }
+            }
+            finally
+            {
+                _isOpening = false;
+            }
+        }
+
+        private async Task OpenArchiveFileThrowAsync(string filePath)
         {
             if (_isOpening)
             {
@@ -471,9 +534,7 @@ namespace TTG_Tools
 
         private async Task OpenArchiveFileCore(string filePath)
         {
-            try
-            {
-                FileInfo fi = new FileInfo(filePath);
+            FileInfo fi = new FileInfo(filePath);
 
                 //Immediate feedback so the title reflects the drop right away, even while it loads.
                 Text = Loc.T("ArchiveUnpacker.titleLoading", "Archive Unpacker. Loading:") + " " + fi.Name;
@@ -513,6 +574,7 @@ namespace TTG_Tools
                             populateFileFormats(ttarch.fileFormats);
                             applyFilters();
                         }
+
                         break;
 
                     case ".ttarch2":
@@ -520,7 +582,7 @@ namespace TTG_Tools
                         ttarch2 = new ClassesStructs.Ttarch2Class();
                         await Task.Run(() => ReadHeaderTtarch2(fi.FullName, key));
 
-                        if(ttarch2 != null)
+                        if (ttarch2 != null)
                         {
                             fileFormatsCB.Items.Clear();
 
@@ -532,7 +594,10 @@ namespace TTG_Tools
                         break;
 
                     default:
-                        MessageBox.Show(Loc.T("ArchiveUnpacker.msgUnsupportedFormat", "Unsupported file format. Please choose a .ttarch, .ttarch2 or .obb file."), Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        MessageBox.Show(
+                            Loc.T("ArchiveUnpacker.msgUnsupportedFormat",
+                                "Unsupported file format. Please choose a .ttarch, .ttarch2 or .obb file."),
+                            Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
                         Text = Loc.T("ArchiveUnpacker.$this", "Archive Unpacker");
                         return;
                 }
@@ -543,11 +608,19 @@ namespace TTG_Tools
                 //their header, so the previous profile's game stayed selected and the encrypted Lua
                 //scripts inside wouldn't decrypt. Identify the game from one of those scripts.
                 if (!gameDetected && !useCustomKeyCB.Checked) await DetectGameFromLuaAsync();
+        }
+        
+        private async Task OpenArchiveFileCoreUI(string filePath)
+        {
+            try
+            {
+                await OpenArchiveFileCore(filePath);
             }
             catch (Exception ex)
             {
                 Text = Loc.T("ArchiveUnpacker.$this", "Archive Unpacker");
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgFailedOpen", "Failed to open archive.") + " " + ex.Message, Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Loc.T("ArchiveUnpacker.msgFailedOpen", "Failed to open archive.") + " " + ex.Message,
+                    Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -576,6 +649,7 @@ namespace TTG_Tools
                     byte c = d[i];
                     if (c == 9 || c == 10 || c == 13 || (c >= 0x20 && c < 0x7F)) printable++;
                 }
+
                 return printable >= sample * 95 / 100;
             }
             catch
@@ -587,7 +661,8 @@ namespace TTG_Tools
         //The selected game first (keeps the user's choice when it already works), then the rest.
         private static int FindLuaGameIndex(byte[] encrypted, int version, int preferred)
         {
-            if (preferred >= 0 && preferred < MainMenu.gamelist.Count && LuaDecryptsWith(encrypted, MainMenu.gamelist[preferred].key, version)) return preferred;
+            if (preferred >= 0 && preferred < MainMenu.gamelist.Count &&
+                LuaDecryptsWith(encrypted, MainMenu.gamelist[preferred].key, version)) return preferred;
 
             for (int g = 0; g < MainMenu.gamelist.Count; g++)
             {
@@ -609,11 +684,23 @@ namespace TTG_Tools
             if (arc1 != null && arc1.files != null)
             {
                 version = arc1.version;
-                foreach (var f in arc1.files) if (IsLuaFileName(f.fileName)) { file1 = f; found = true; break; }
+                foreach (var f in arc1.files)
+                    if (IsLuaFileName(f.fileName))
+                    {
+                        file1 = f;
+                        found = true;
+                        break;
+                    }
             }
             else if (arc2 != null && arc2.files != null)
             {
-                foreach (var f in arc2.files) if (IsLuaFileName(f.fileName)) { file2 = f; found = true; break; }
+                foreach (var f in arc2.files)
+                    if (IsLuaFileName(f.fileName))
+                    {
+                        file2 = f;
+                        found = true;
+                        break;
+                    }
             }
 
             if (!found) return;
@@ -636,7 +723,8 @@ namespace TTG_Tools
             });
 
             //Still the same archive? Then switch to the game whose key decrypts its scripts.
-            if (game >= 0 && game != gameListCB.SelectedIndex && (arc1 == null || arc1 == ttarch) && (arc2 == null || arc2 == ttarch2))
+            if (game >= 0 && game != gameListCB.SelectedIndex && (arc1 == null || arc1 == ttarch) &&
+                (arc2 == null || arc2 == ttarch2))
                 gameListCB.SelectedIndex = game;
         }
 
@@ -683,11 +771,11 @@ namespace TTG_Tools
         private static bool isAllFilesFormat(string format)
         {
             return string.IsNullOrEmpty(format)
-                || string.Equals(format, "All files", StringComparison.OrdinalIgnoreCase)
-                || string.Equals(
-                    format,
-                    Loc.T("ArchiveUnpacker.allFiles", "All files"),
-                    StringComparison.CurrentCultureIgnoreCase);
+                   || string.Equals(format, "All files", StringComparison.OrdinalIgnoreCase)
+                   || string.Equals(
+                       format,
+                       Loc.T("ArchiveUnpacker.allFiles", "All files"),
+                       StringComparison.CurrentCultureIgnoreCase);
         }
 
         private bool isSearchEnabled()
@@ -721,7 +809,8 @@ namespace TTG_Tools
         //Filter values (format/searchPattern) may be passed in so that extraction running on a
         //background thread never touches UI controls (searchTB/fileFormatsCB) directly. When called
         //from the UI thread the arguments are left null and the current control values are read.
-        private ClassesStructs.TtarchClass.ttarchFiles[] getFilteredTtarchFiles(string format = null, string searchPattern = null)
+        private ClassesStructs.TtarchClass.ttarchFiles[] getFilteredTtarchFiles(string format = null,
+            string searchPattern = null)
         {
             var files = ttarch.files.AsEnumerable();
             if (format == null) format = getSelectedFormat();
@@ -742,7 +831,8 @@ namespace TTG_Tools
             return sortTtarchFiles(files).ToArray();
         }
 
-        private ClassesStructs.Ttarch2Class.Ttarch2files[] getFilteredTtarch2Files(string format = null, string searchPattern = null)
+        private ClassesStructs.Ttarch2Class.Ttarch2files[] getFilteredTtarch2Files(string format = null,
+            string searchPattern = null)
         {
             var files = ttarch2.files.AsEnumerable();
             if (format == null) format = getSelectedFormat();
@@ -763,35 +853,69 @@ namespace TTG_Tools
             return sortTtarch2Files(files).ToArray();
         }
 
-        private IEnumerable<ClassesStructs.TtarchClass.ttarchFiles> sortTtarchFiles(IEnumerable<ClassesStructs.TtarchClass.ttarchFiles> files)
+        private IEnumerable<ClassesStructs.TtarchClass.ttarchFiles> sortTtarchFiles(
+            IEnumerable<ClassesStructs.TtarchClass.ttarchFiles> files)
         {
             switch (fileGridSortColumn)
             {
                 case 1:
-                    return fileGridSortAscending ? files.OrderBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 case 2:
-                    return fileGridSortAscending ? files.OrderBy(x => Methods.GetExtension(x.fileName).ToLower(), StringComparer.CurrentCultureIgnoreCase).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => Methods.GetExtension(x.fileName).ToLower(), StringComparer.CurrentCultureIgnoreCase).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => Methods.GetExtension(x.fileName).ToLower(),
+                                StringComparer.CurrentCultureIgnoreCase)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => Methods.GetExtension(x.fileName).ToLower(),
+                                StringComparer.CurrentCultureIgnoreCase)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 case 3:
-                    return fileGridSortAscending ? files.OrderBy(x => x.fileSize).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => x.fileSize).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => x.fileSize)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => x.fileSize)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 case 4:
-                    return fileGridSortAscending ? files.OrderBy(x => x.fileOffset).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => x.fileOffset).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => x.fileOffset)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => x.fileOffset)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 default:
                     return files;
             }
         }
 
-        private IEnumerable<ClassesStructs.Ttarch2Class.Ttarch2files> sortTtarch2Files(IEnumerable<ClassesStructs.Ttarch2Class.Ttarch2files> files)
+        private IEnumerable<ClassesStructs.Ttarch2Class.Ttarch2files> sortTtarch2Files(
+            IEnumerable<ClassesStructs.Ttarch2Class.Ttarch2files> files)
         {
             switch (fileGridSortColumn)
             {
                 case 1:
-                    return fileGridSortAscending ? files.OrderBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 case 2:
-                    return fileGridSortAscending ? files.OrderBy(x => Methods.GetExtension(x.fileName).ToLower(), StringComparer.CurrentCultureIgnoreCase).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => Methods.GetExtension(x.fileName).ToLower(), StringComparer.CurrentCultureIgnoreCase).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => Methods.GetExtension(x.fileName).ToLower(),
+                                StringComparer.CurrentCultureIgnoreCase)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => Methods.GetExtension(x.fileName).ToLower(),
+                                StringComparer.CurrentCultureIgnoreCase)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 case 3:
-                    return fileGridSortAscending ? files.OrderBy(x => x.fileSize).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => x.fileSize).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => x.fileSize)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => x.fileSize)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 case 4:
-                    return fileGridSortAscending ? files.OrderBy(x => x.fileOffset).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase) : files.OrderByDescending(x => x.fileOffset).ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
+                    return fileGridSortAscending
+                        ? files.OrderBy(x => x.fileOffset)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase)
+                        : files.OrderByDescending(x => x.fileOffset)
+                            .ThenBy(x => x.fileName, StringComparer.CurrentCultureIgnoreCase);
                 default:
                     return files;
             }
@@ -848,7 +972,7 @@ namespace TTG_Tools
 
         void SetMaximum(int i)
         {
-            if(progressBar1.InvokeRequired)
+            if (progressBar1.InvokeRequired)
             {
                 progressBar1.Invoke(new ProgressHandler(SetMaximum), i);
             }
@@ -864,7 +988,7 @@ namespace TTG_Tools
             {
                 byte[] retBuf = null;
 
-                if(algorithmCompress == -1)
+                if (algorithmCompress == -1)
                 {
                     retBuf = decompressBlock(bytes);
                 }
@@ -882,7 +1006,6 @@ namespace TTG_Tools
                     case 2:
                         retBuf = OodleDecompressor(bytes);
                         break;
-                        
                 }
 
                 return retBuf;
@@ -937,7 +1060,9 @@ namespace TTG_Tools
             byte[] retVal;
             using (MemoryStream decompressedMemoryStream = new MemoryStream(bytes))
             {
-                using (System.IO.Compression.DeflateStream decompressStream = new System.IO.Compression.DeflateStream(decompressedMemoryStream, System.IO.Compression.CompressionMode.Decompress))
+                using (System.IO.Compression.DeflateStream decompressStream =
+                       new System.IO.Compression.DeflateStream(decompressedMemoryStream,
+                           System.IO.Compression.CompressionMode.Decompress))
                 {
                     using (MemoryStream memOutStream = new MemoryStream())
                     {
@@ -946,6 +1071,7 @@ namespace TTG_Tools
                     }
                 }
             }
+
             return retVal;
         }
 
@@ -955,11 +1081,11 @@ namespace TTG_Tools
 
             using (Stream inMemoryStream = new MemoryStream(bytes))
             {
-                using (Joveler.ZLibWrapper.ZLibStream inZStream = new Joveler.ZLibWrapper.ZLibStream(inMemoryStream, Joveler.ZLibWrapper.ZLibMode.Decompress))
+                using (Joveler.ZLibWrapper.ZLibStream inZStream =
+                       new Joveler.ZLibWrapper.ZLibStream(inMemoryStream, Joveler.ZLibWrapper.ZLibMode.Decompress))
                 {
                     using (MemoryStream outMemoryStream = new MemoryStream())
                     {
-
                         Methods.CopyStream(inZStream, outMemoryStream);
                         inZStream.Flush();
                         retBytes = outMemoryStream.ToArray();
@@ -982,7 +1108,8 @@ namespace TTG_Tools
                 retBytes = new byte[decBufSize];
             }
 
-            int size = (int)OodleTools.Imports.OodleLZ_Decompress(bytes, bufSize, retBytes, decBufSize, 1, 0, 0, 0, 0, 0, 0, 0, 0, 3); //fuzzSafe
+            int size = (int)OodleTools.Imports.OodleLZ_Decompress(bytes, bufSize, retBytes, decBufSize, 1, 0, 0, 0, 0,
+                0, 0, 0, 0, 3); //fuzzSafe
 
             byte[] tmp = new byte[size];
             Array.Copy(retBytes, 0, tmp, 0, tmp.Length);
@@ -998,7 +1125,7 @@ namespace TTG_Tools
                 {
                     int dirsCount = mbr.ReadInt32();
 
-                    for(int d = 0; d < dirsCount; d++)
+                    for (int d = 0; d < dirsCount; d++)
                     {
                         int nameLen = mbr.ReadInt32();
                         byte[] tmpName = mbr.ReadBytes(nameLen);
@@ -1009,7 +1136,7 @@ namespace TTG_Tools
 
                     ttarch.files = new ClassesStructs.TtarchClass.ttarchFiles[filesCount];
 
-                    for(int f = 0; f < filesCount; f++)
+                    for (int f = 0; f < filesCount; f++)
                     {
                         int nameLen = mbr.ReadInt32();
                         byte[] tmpName = mbr.ReadBytes(nameLen);
@@ -1018,7 +1145,8 @@ namespace TTG_Tools
                         ttarch.files[f].fileOffset = mbr.ReadUInt32();
                         ttarch.files[f].fileSize = mbr.ReadInt32();
 
-                        if (((Methods.GetExtension(ttarch.files[f].fileName).ToLower() == ".lenc") || (Methods.GetExtension(ttarch.files[f].fileName).ToLower() == ".lua"))
+                        if (((Methods.GetExtension(ttarch.files[f].fileName).ToLower() == ".lenc") ||
+                             (Methods.GetExtension(ttarch.files[f].fileName).ToLower() == ".lua"))
                             && !ttarch.isEncryptedLua)
                         {
                             ttarch.isEncryptedLua = Methods.GetExtension(ttarch.files[f].fileName).ToLower() == ".lenc";
@@ -1061,7 +1189,8 @@ namespace TTG_Tools
                     int headerSize = br.ReadInt32();
                     int second = br.ReadInt32();
 
-                    if (headerSize > 0 && second > 0 && after + 8 + Math.Min(headerSize, second) <= br.BaseStream.Length)
+                    if (headerSize > 0 && second > 0 &&
+                        after + 8 + Math.Min(headerSize, second) <= br.BaseStream.Length)
                     {
                         br.BaseStream.Seek(after, SeekOrigin.Begin);
                         return;
@@ -1087,7 +1216,8 @@ namespace TTG_Tools
             return firstValue < 1 || firstValue > 9;
         }
 
-        private static void ReadHeaderlessTtarch(BinaryReader br, out byte[] header, out bool encrypted, out uint filesOffset)
+        private static void ReadHeaderlessTtarch(BinaryReader br, out byte[] header, out bool encrypted,
+            out uint filesOffset)
         {
             br.BaseStream.Seek(0, SeekOrigin.Begin);
             long plainEnd = GetPlainTtarchHeaderEnd(br);
@@ -1205,12 +1335,12 @@ namespace TTG_Tools
                     val = br.ReadInt32();
                     countCompressedBlocks = br.ReadInt32();
 
-                    if(val == 2)
+                    if (val == 2)
                     {
                         ttarch.compressedBlocks = new int[countCompressedBlocks];
                         ttarch.isCompressed = true;
 
-                        for(int k = 0; k < countCompressedBlocks; k++)
+                        for (int k = 0; k < countCompressedBlocks; k++)
                         {
                             ttarch.compressedBlocks[k] = br.ReadInt32();
                         }
@@ -1232,16 +1362,18 @@ namespace TTG_Tools
                         //Some v5/v6 archives (Sam & Max 200 Wii "fontfix") already carry the two
                         //v7 X-mode ints (0/1 each) before the header size. A header size is
                         //never 0 or 1, so a 0/1 here can only be those flags.
-                        if ((ttarch.version == 5 || ttarch.version == 6) && br.BaseStream.Position + 12 <= br.BaseStream.Length)
+                        if ((ttarch.version == 5 || ttarch.version == 6) &&
+                            br.BaseStream.Position + 12 <= br.BaseStream.Length)
                         {
                             long flagsPos = br.BaseStream.Position;
                             int flagA = br.ReadInt32();
                             int flagB = br.ReadInt32();
 
-                            if (!((flagA == 0 || flagA == 1) && (flagB == 0 || flagB == 1))) br.BaseStream.Seek(flagsPos, SeekOrigin.Begin);
+                            if (!((flagA == 0 || flagA == 1) && (flagB == 0 || flagB == 1)))
+                                br.BaseStream.Seek(flagsPos, SeekOrigin.Begin);
                         }
 
-                        if(ttarch.version >= 7)
+                        if (ttarch.version >= 7)
                         {
                             int someVal = br.ReadInt32();
                             int someVal2 = br.ReadInt32();
@@ -1249,12 +1381,12 @@ namespace TTG_Tools
                             ttarch.isXmode = someVal == 1 || someVal2 == 1;
                             ttarch.chunkSize = br.ReadInt32();
 
-                            if(ttarch.version > 7)
+                            if (ttarch.version > 7)
                             {
                                 if (ttarch.version == 8) SkipV8Flags(br);
                                 else br.ReadByte();
 
-                                if(ttarch.version == 9)
+                                if (ttarch.version == 9)
                                 {
                                     uint crc32 = br.ReadUInt32();
                                 }
@@ -1275,12 +1407,12 @@ namespace TTG_Tools
 
                 ttarch.filesOffset = (uint)br.BaseStream.Position;
 
-                if(ttarch.version >= 7 && val == 2)
+                if (ttarch.version >= 7 && val == 2)
                 {
                     header = decompressBlock(header);
                 }
 
-                if(encryption == 1)
+                if (encryption == 1)
                 {
                     ttarch.isEncrypted = true;
                     BlowFishCS.BlowFish dec = new BlowFishCS.BlowFish(key, ttarch.version);
@@ -1289,12 +1421,12 @@ namespace TTG_Tools
 
                 //Oldest compressed archives: find out the compression algorithm (zlib or deflate) from the first
                 //block before the file table is read, since checking its Lua files already decompresses blocks.
-                if(ttarch.version < 7 && ttarch.isCompressed)
+                if (ttarch.version < 7 && ttarch.isCompressed)
                 {
                     br.BaseStream.Seek(ttarch.filesOffset, SeekOrigin.Begin);
                     byte[] tmp = br.ReadBytes(ttarch.compressedBlocks[0]);
 
-                    if(ttarch.isEncrypted)
+                    if (ttarch.isEncrypted)
                     {
                         BlowFishCS.BlowFish dec = new BlowFishCS.BlowFish(key, ttarch.version);
                         tmp = dec.Crypt_ECB(tmp, ttarch.version, true);
@@ -1309,10 +1441,15 @@ namespace TTG_Tools
                 br.Close();
                 fs.Close();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 if (cliErrorSink != null) cliErrorSink(ex.ToString());
-                else ShowArchiveMessage(Loc.T("ArchiveUnpacker.msgUnknownErrorEx", "Unknown error. Please try another archive or change encryption key.\r\nGot exception:") + "\r\n" + ex.Message, Loc.T("ArchiveUnpacker.titleSomethingWrong", "Something goes wrong"), MessageBoxIcon.Error);
+                else
+                    ShowArchiveMessage(
+                        Loc.T("ArchiveUnpacker.msgUnknownErrorEx",
+                            "Unknown error. Please try another archive or change encryption key.\r\nGot exception:") +
+                        "\r\n" + ex.Message, Loc.T("ArchiveUnpacker.titleSomethingWrong", "Something goes wrong"),
+                        MessageBoxIcon.Error);
                 ttarch = null;
             }
         }
@@ -1381,9 +1518,15 @@ namespace TTG_Tools
                     string logPath = folderPath + Path.DirectorySeparatorChar + "_unpack_errors.log";
                     File.WriteAllText(ToLongPath(logPath), string.Join(Environment.NewLine, failedFiles));
                 }
-                catch { }
+                catch
+                {
+                }
 
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgFailedExtractList", "The following files could not be extracted:") + "\n\n" + string.Join("\n", failedFiles), Loc.T("ArchiveUnpacker.titleFilesNotExtracted", "Files not extracted"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    Loc.T("ArchiveUnpacker.msgFailedExtractList", "The following files could not be extracted:") +
+                    "\n\n" + string.Join("\n", failedFiles),
+                    Loc.T("ArchiveUnpacker.titleFilesNotExtracted", "Files not extracted"), MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
         }
 
@@ -1401,12 +1544,17 @@ namespace TTG_Tools
                 byte[] header = br.ReadBytes(4);
                 foffset += 4;
                 ttarch2.compressAlgorithm = -1;
-                ttarch2.isCompressed = Encoding.ASCII.GetString(header) != "NCTT"; //If it's a NCTT header then archive is not compressed
-                ttarch2.isEncrypted = Encoding.ASCII.GetString(header) == "ECTT" || Encoding.ASCII.GetString(header) == "eCTT";
+                ttarch2.isCompressed =
+                    Encoding.ASCII.GetString(header) != "NCTT"; //If it's a NCTT header then archive is not compressed
+                ttarch2.isEncrypted = Encoding.ASCII.GetString(header) == "ECTT" ||
+                                      Encoding.ASCII.GetString(header) == "eCTT";
 
                 if (ttarch2.isCompressed)
                 {
-                    ttarch2.compressAlgorithm = Encoding.ASCII.GetString(header) == "eCTT" || Encoding.ASCII.GetString(header) == "zCTT" ? 2 : 1;
+                    ttarch2.compressAlgorithm = Encoding.ASCII.GetString(header) == "eCTT" ||
+                                                Encoding.ASCII.GetString(header) == "zCTT"
+                        ? 2
+                        : 1;
 
                     //Without the Oodle library every block fails to decompress and the archive looks like it
                     //has a wrong key, which is misleading: console archives aren't even encrypted.
@@ -1414,7 +1562,13 @@ namespace TTG_Tools
                     {
                         br.Close();
                         fs.Close();
-                        ShowArchiveMessage(string.Format(Loc.T("ArchiveUnpacker.msgOodleMissing", "This archive is compressed with Oodle, but {0} wasn't found.\r\nCopy {0} from the folder of a newer Telltale PC game (e.g. Batman, The Walking Dead: The Telltale Definitive Series) into the TTG Tools folder and open the archive again."), OodleTools.Imports.DllName), Loc.T("ArchiveUnpacker.titleOodleMissing", "Oodle library not found"), MessageBoxIcon.Warning);
+                        ShowArchiveMessage(
+                            string.Format(
+                                Loc.T("ArchiveUnpacker.msgOodleMissing",
+                                    "This archive is compressed with Oodle, but {0} wasn't found.\r\nCopy {0} from the folder of a newer Telltale PC game (e.g. Batman, The Walking Dead: The Telltale Definitive Series) into the TTG Tools folder and open the archive again."),
+                                OodleTools.Imports.DllName),
+                            Loc.T("ArchiveUnpacker.titleOodleMissing", "Oodle library not found"),
+                            MessageBoxIcon.Warning);
                         ttarch2 = null;
                         return;
                     }
@@ -1424,6 +1578,7 @@ namespace TTG_Tools
                         int one = br.ReadInt32();
                         foffset += 4;
                     }
+
                     ttarch2.chunkSize = br.ReadUInt32();
                     int blocksCount = br.ReadInt32();
                     foffset += 4 + 4;
@@ -1446,7 +1601,7 @@ namespace TTG_Tools
 
                     byte[] tmp = br.ReadBytes((int)ttarch2.compressedBlocks[0]);
 
-                    if(ttarch2.isEncrypted)
+                    if (ttarch2.isEncrypted)
                     {
                         BlowFishCS.BlowFish dec = new BlowFishCS.BlowFish(key, 7);
                         tmp = dec.Crypt_ECB(tmp, 7, true);
@@ -1495,7 +1650,7 @@ namespace TTG_Tools
                             {
                                 tmp = br.ReadBytes((int)ttarch2.compressedBlocks[i]);
 
-                                if(ttarch2.isEncrypted)
+                                if (ttarch2.isEncrypted)
                                 {
                                     BlowFishCS.BlowFish dec = new BlowFishCS.BlowFish(key, 7);
                                     tmp = dec.Crypt_ECB(tmp, 7, true);
@@ -1516,7 +1671,7 @@ namespace TTG_Tools
                         {
                             mbr.BaseStream.Seek(suboff, SeekOrigin.Begin);
 
-                            for(int i = 0; i < (int)filesCount; i++)
+                            for (int i = 0; i < (int)filesCount; i++)
                             {
                                 ttarch2.files[i].fileNameCRC64 = mbr.ReadUInt64();
                                 ttarch2.files[i].fileOffset = mbr.ReadUInt64();
@@ -1525,7 +1680,8 @@ namespace TTG_Tools
                                 ushort nameBlock = mbr.ReadUInt16();
                                 ushort nameOff = mbr.ReadUInt16();
                                 pos = mbr.BaseStream.Position;
-                                ulong nameOffset = (ulong)suboff + (28 * (ulong)filesCount) + (ulong)nameOff + ((ulong)nameBlock * 0x10000);
+                                ulong nameOffset = (ulong)suboff + (28 * (ulong)filesCount) + (ulong)nameOff +
+                                                   ((ulong)nameBlock * 0x10000);
                                 mbr.BaseStream.Seek((long)nameOffset, SeekOrigin.Begin);
 
                                 using (MemoryStream mms = new MemoryStream())
@@ -1599,7 +1755,8 @@ namespace TTG_Tools
                         ushort nameBlock = br.ReadUInt16();
                         ushort nameOff = br.ReadUInt16();
                         long pos = br.BaseStream.Position;
-                        ulong nameOffset = foffset + (28 * (ulong)filesCount) + (ulong)nameOff + ((ulong)nameBlock * 0x10000);
+                        ulong nameOffset = foffset + (28 * (ulong)filesCount) + (ulong)nameOff +
+                                           ((ulong)nameBlock * 0x10000);
                         br.BaseStream.Seek((long)nameOffset, SeekOrigin.Begin);
 
                         using (MemoryStream ms = new MemoryStream())
@@ -1618,7 +1775,7 @@ namespace TTG_Tools
 
                             string ext = Methods.GetExtension(ttarch2.files[i].fileName);
 
-                            if(((ext == ".lenc") || (ext == ".lua")) && !ttarch2.isEncryptedLua)
+                            if (((ext == ".lenc") || (ext == ".lua")) && !ttarch2.isEncryptedLua)
                             {
                                 if (ext == ".lenc")
                                 {
@@ -1651,7 +1808,11 @@ namespace TTG_Tools
             catch (Exception ex)
             {
                 if (cliErrorSink != null) cliErrorSink(ex.ToString());
-                else ShowArchiveMessage(Loc.T("ArchiveUnpacker.msgUnknownError", "Unknown error. Please try another archive or change encryption key."), Loc.T("ArchiveUnpacker.titleSomethingWrong", "Something goes wrong"), MessageBoxIcon.Error);
+                else
+                    ShowArchiveMessage(
+                        Loc.T("ArchiveUnpacker.msgUnknownError",
+                            "Unknown error. Please try another archive or change encryption key."),
+                        Loc.T("ArchiveUnpacker.titleSomethingWrong", "Something goes wrong"), MessageBoxIcon.Error);
                 ttarch2 = null;
             }
         }
@@ -1662,7 +1823,7 @@ namespace TTG_Tools
             List<string> failedFiles = new List<string>();
 
             int count = indexes != null ? indexes.Length : files.Length;
-            
+
             SetMinimum(0);
             SetMaximum(count);
 
@@ -1685,9 +1846,12 @@ namespace TTG_Tools
                         continue;
                     }
 
-                    if (((fileName.Substring(fileName.Length - 5, 5).ToLower() == ".lenc") || (fileName.Substring(fileName.Length - 4, 4).ToLower() == ".lua")) && decrypt)
+                    if (((fileName.Substring(fileName.Length - 5, 5).ToLower() == ".lenc") ||
+                         (fileName.Substring(fileName.Length - 4, 4).ToLower() == ".lua")) && decrypt)
                     {
-                        fileName = fileName.Substring(fileName.Length - 5, 5).ToLower() == ".lenc" ? fileName.Remove(fileName.Length - 4, 4) + "lua" : fileName.Remove(fileName.Length - 3, 3) + "lua";
+                        fileName = fileName.Substring(fileName.Length - 5, 5).ToLower() == ".lenc"
+                            ? fileName.Remove(fileName.Length - 4, 4) + "lua"
+                            : fileName.Remove(fileName.Length - 3, 3) + "lua";
                         file = Methods.decryptLua(file, key, 7);
                     }
 
@@ -1718,9 +1882,15 @@ namespace TTG_Tools
                     string logPath = folderPath + Path.DirectorySeparatorChar + "_unpack_errors.log";
                     File.WriteAllText(ToLongPath(logPath), string.Join(Environment.NewLine, failedFiles));
                 }
-                catch { }
+                catch
+                {
+                }
 
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgFailedExtractList", "The following files could not be extracted:") + "\n\n" + string.Join("\n", failedFiles), Loc.T("ArchiveUnpacker.titleFilesNotExtracted", "Files not extracted"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(
+                    Loc.T("ArchiveUnpacker.msgFailedExtractList", "The following files could not be extracted:") +
+                    "\n\n" + string.Join("\n", failedFiles),
+                    Loc.T("ArchiveUnpacker.titleFilesNotExtracted", "Files not extracted"), MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning);
             }
         }
 
@@ -1743,7 +1913,7 @@ namespace TTG_Tools
                     compressedStr += " (";
                     compressedStr += ttarch.compressAlgorithm == 0 ? "zlib)" : "deflate)";
                 }
-                
+
                 encryptedStr += ttarch.isEncrypted ? yes : no;
                 xmodeStr += ttarch.isXmode ? yes : no;
                 chunkSzStr += Convert.ToString(ttarch.chunkSize) + "KB";
@@ -1828,7 +1998,9 @@ namespace TTG_Tools
             foreach (DataGridViewColumn col in filesDataGridView.Columns)
             {
                 col.ReadOnly = true;
-                col.SortMode = col.Index == 0 ? DataGridViewColumnSortMode.NotSortable : DataGridViewColumnSortMode.Programmatic;
+                col.SortMode = col.Index == 0
+                    ? DataGridViewColumnSortMode.NotSortable
+                    : DataGridViewColumnSortMode.Programmatic;
                 col.HeaderCell.SortGlyphDirection = SortOrder.None;
             }
 
@@ -1863,7 +2035,8 @@ namespace TTG_Tools
 
         private int getTypeColumnWidth()
         {
-            int width = TextRenderer.MeasureText(Loc.T("ArchiveUnpacker.colFileType", "Type"), filesDataGridView.Font).Width + 28;
+            int width = TextRenderer.MeasureText(Loc.T("ArchiveUnpacker.colFileType", "Type"), filesDataGridView.Font)
+                .Width + 28;
             HashSet<string> types = new HashSet<string>(StringComparer.CurrentCultureIgnoreCase);
 
             if (shownTtarchFiles != null)
@@ -1896,7 +2069,8 @@ namespace TTG_Tools
 
             if (fileGridSortColumn > 0 && fileGridSortColumn < filesDataGridView.Columns.Count)
             {
-                filesDataGridView.Columns[fileGridSortColumn].HeaderCell.SortGlyphDirection = fileGridSortAscending ? SortOrder.Ascending : SortOrder.Descending;
+                filesDataGridView.Columns[fileGridSortColumn].HeaderCell.SortGlyphDirection =
+                    fileGridSortAscending ? SortOrder.Ascending : SortOrder.Descending;
             }
         }
 
@@ -1961,11 +2135,18 @@ namespace TTG_Tools
         private static void ShowArchiveMessage(string text, string title, MessageBoxIcon icon)
         {
             Form owner = null;
-            try { owner = Application.OpenForms.OfType<ArchiveUnpacker>().FirstOrDefault(); } catch { }
+            try
+            {
+                owner = Application.OpenForms.OfType<ArchiveUnpacker>().FirstOrDefault();
+            }
+            catch
+            {
+            }
 
             if (owner != null && !owner.IsDisposed && owner.IsHandleCreated)
             {
-                if (owner.InvokeRequired) owner.Invoke(new Action(() => MessageBox.Show(owner, text, title, MessageBoxButtons.OK, icon)));
+                if (owner.InvokeRequired)
+                    owner.Invoke(new Action(() => MessageBox.Show(owner, text, title, MessageBoxButtons.OK, icon)));
                 else MessageBox.Show(owner, text, title, MessageBoxButtons.OK, icon);
                 return;
             }
@@ -1982,9 +2163,13 @@ namespace TTG_Tools
         {
             var log = new List<string>();
             int ok = 0, fail = 0;
-            var inst = (ArchiveUnpacker)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ArchiveUnpacker));
-            var read1 = typeof(ArchiveUnpacker).GetMethod("ReadHeaderTtarch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            var read2 = typeof(ArchiveUnpacker).GetMethod("ReadHeaderTtarch2", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var inst =
+                (ArchiveUnpacker)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
+                    typeof(ArchiveUnpacker));
+            var read1 = typeof(ArchiveUnpacker).GetMethod("ReadHeaderTtarch",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var read2 = typeof(ArchiveUnpacker).GetMethod("ReadHeaderTtarch2",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
 
             foreach (string path in Directory.GetFiles(folder, "*.*", SearchOption.AllDirectories))
             {
@@ -2034,8 +2219,11 @@ namespace TTG_Tools
         public static void ExtractTtarchCli(string archivePath, string outputDir, byte[] key)
         {
             ttarch = new ClassesStructs.TtarchClass();
-            var inst = (ArchiveUnpacker)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(typeof(ArchiveUnpacker));
-            var read = typeof(ArchiveUnpacker).GetMethod("ReadHeaderTtarch", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var inst =
+                (ArchiveUnpacker)System.Runtime.Serialization.FormatterServices.GetUninitializedObject(
+                    typeof(ArchiveUnpacker));
+            var read = typeof(ArchiveUnpacker).GetMethod("ReadHeaderTtarch",
+                System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             read.Invoke(inst, new object[] { archivePath, key });
             if (ttarch == null) throw new Exception("Failed to read header");
             if (!Directory.Exists(outputDir)) Directory.CreateDirectory(outputDir);
@@ -2046,16 +2234,23 @@ namespace TTG_Tools
                 for (int i = 0; i < ttarch.files.Length; i++)
                 {
                     byte[] data = getTtarchFile(ttarch, ttarch.files[i], key, chunkSz, br);
-                    if (data == null) { Console.WriteLine("FAIL: " + ttarch.files[i].fileName); continue; }
+                    if (data == null)
+                    {
+                        Console.WriteLine("FAIL: " + ttarch.files[i].fileName);
+                        continue;
+                    }
+
                     string outPath = Path.Combine(outputDir, ttarch.files[i].fileName);
                     File.WriteAllBytes(ToLongPath(outPath), data); //Some old file names (Bone) exceed MAX_PATH
                     if (i % 1000 == 0) Console.WriteLine("extracted " + i + "/" + ttarch.files.Length);
                 }
             }
+
             Console.WriteLine("Extract done: " + ttarch.files.Length + " files");
         }
 
-        private static byte[] getTtarchFile(ClassesStructs.TtarchClass ttarch, ClassesStructs.TtarchClass.ttarchFiles file, byte[] key, int chunkSz, BinaryReader br)
+        private static byte[] getTtarchFile(ClassesStructs.TtarchClass ttarch,
+            ClassesStructs.TtarchClass.ttarchFiles file, byte[] key, int chunkSz, BinaryReader br)
         {
             byte[] result = null;
 
@@ -2086,6 +2281,7 @@ namespace TTG_Tools
                 {
                     off += (uint)ttarch.compressedBlocks[c];
                 }
+
                 br.BaseStream.Seek(ttarch.filesOffset + off, SeekOrigin.Begin);
 
                 uint c_off = (uint)(file.fileOffset - (chunkSz * index));
@@ -2141,25 +2337,31 @@ namespace TTG_Tools
             Array.Copy(BitConverter.GetBytes(plain), 0, data, 0, 4);
         }
 
-        private static byte[] getTtarch2File(Ttarch2Class ttarch2, Ttarch2Class.Ttarch2files file, byte[] key, BinaryReader br)
+        private static byte[] getTtarch2File(Ttarch2Class ttarch2, Ttarch2Class.Ttarch2files file, byte[] key,
+            BinaryReader br)
         {
             byte[] result = null;
 
             if (ttarch2.isCompressed)
             {
                 int index = (int)((ttarch2.filesOffset + file.fileOffset) / ttarch2.chunkSize);
-                int index2 = (int)((ttarch2.filesOffset + file.fileOffset + (ulong)file.fileSize) / (ulong)(ttarch2.chunkSize));
+                int index2 = (int)((ttarch2.filesOffset + file.fileOffset + (ulong)file.fileSize) /
+                                   (ulong)(ttarch2.chunkSize));
 
                 if (index > ttarch2.compressedBlocks.Length)
                 {
-                    ShowArchiveMessage(Loc.T("ArchiveUnpacker.msgOffsetWrong", "Something wrong with offset in compressed archive"), Loc.T("Common.error", "Error"), MessageBoxIcon.Error);
+                    ShowArchiveMessage(
+                        Loc.T("ArchiveUnpacker.msgOffsetWrong", "Something wrong with offset in compressed archive"),
+                        Loc.T("Common.error", "Error"), MessageBoxIcon.Error);
 
                     return null;
                 }
 
                 if (index2 > ttarch2.compressedBlocks.Length)
                 {
-                    ShowArchiveMessage(Loc.T("ArchiveUnpacker.msgOffsetWrong", "Something wrong with offset in compressed archive"), Loc.T("Common.error", "Error"), MessageBoxIcon.Error);
+                    ShowArchiveMessage(
+                        Loc.T("ArchiveUnpacker.msgOffsetWrong", "Something wrong with offset in compressed archive"),
+                        Loc.T("Common.error", "Error"), MessageBoxIcon.Error);
 
                     return null;
                 }
@@ -2259,9 +2461,9 @@ namespace TTG_Tools
         private async void openToolStripMenuItem_Click(object sender, EventArgs e)
         {
             OpenFileDialog ofd = new OpenFileDialog();
-                ofd.Filter = Loc.T(
-                    "ArchiveUnpacker.openFilter",
-                    "All supported files (*.ttarch, *.ttarch2, *.obb) | *.ttarch;*.ttarch2;*.obb| TTARCH archives (*.ttarch) | *.ttarch| TTARCH2/OBB archives (*.ttarch2;*.obb) | *.ttarch2;*.obb");
+            ofd.Filter = Loc.T(
+                "ArchiveUnpacker.openFilter",
+                "All supported files (*.ttarch, *.ttarch2, *.obb) | *.ttarch;*.ttarch2;*.obb| TTARCH archives (*.ttarch) | *.ttarch| TTARCH2/OBB archives (*.ttarch2;*.obb) | *.ttarch2;*.obb");
 
             if (ofd.ShowDialog() == DialogResult.OK)
             {
@@ -2274,23 +2476,26 @@ namespace TTG_Tools
             loadingSettings = true;
             try
             {
-            for (int i = 0; i < MainMenu.gamelist.Count; i++)
-            {
-                gameListCB.Items.Add(i + ". " + MainMenu.gamelist[i].gamename);
-            }
+                for (int i = 0; i < MainMenu.gamelist.Count; i++)
+                {
+                    gameListCB.Items.Add(i + ". " + MainMenu.gamelist[i].gamename);
+                }
 
-            gameListCB.SelectedIndex = MainMenu.settings.encKeyIndex >= 0 && MainMenu.settings.encKeyIndex < gameListCB.Items.Count ? MainMenu.settings.encKeyIndex : (gameListCB.Items.Count > 0 ? 0 : -1);
-            customKeyTB.Text = MainMenu.settings.encCustomKey;
-            suppressCustomKeyEvent = true;
-            useCustomKeyCB.Checked = false;
-            useCustomKeyCB.Visible = false;
-            customKeyTB.Visible = false;
-            suppressCustomKeyEvent = false;
+                gameListCB.SelectedIndex =
+                    MainMenu.settings.encKeyIndex >= 0 && MainMenu.settings.encKeyIndex < gameListCB.Items.Count
+                        ? MainMenu.settings.encKeyIndex
+                        : (gameListCB.Items.Count > 0 ? 0 : -1);
+                customKeyTB.Text = MainMenu.settings.encCustomKey;
+                suppressCustomKeyEvent = true;
+                useCustomKeyCB.Checked = false;
+                useCustomKeyCB.Visible = false;
+                customKeyTB.Visible = false;
+                suppressCustomKeyEvent = false;
 
-            searchTB.Enabled = searchFilesByNameCB.Checked;
-            searchBtn.Enabled = searchFilesByNameCB.Checked;
+                searchTB.Enabled = searchFilesByNameCB.Checked;
+                searchBtn.Enabled = searchFilesByNameCB.Checked;
 
-            updateExtractionActions(false);
+                updateExtractionActions(false);
             }
             finally
             {
@@ -2308,7 +2513,9 @@ namespace TTG_Tools
 
             if (!hasFilteredResults())
             {
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNoFilesToExtract", "No files found to extract."), Loc.T("ArchiveUnpacker.titleNoResults", "No results"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNoFilesToExtract", "No files found to extract."),
+                    Loc.T("ArchiveUnpacker.titleNoResults", "No results"), MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -2321,7 +2528,7 @@ namespace TTG_Tools
                     await Task.Run(() => UnpackTtarch(selectedFolder, format, searchPattern));
                 }
             }
-            else if(ttarch2 != null)
+            else if (ttarch2 != null)
             {
                 string selectedFolder = SelectFolder();
 
@@ -2332,7 +2539,10 @@ namespace TTG_Tools
             }
             else
             {
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNothingToExtract", "Nothing to extract. Please open ttarch/ttarch2/obb file and then extract."), Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(
+                    Loc.T("ArchiveUnpacker.msgNothingToExtract",
+                        "Nothing to extract. Please open ttarch/ttarch2/obb file and then extract."),
+                    Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -2364,7 +2574,9 @@ namespace TTG_Tools
         {
             if (!hasFilteredResults())
             {
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNoFilesToExtract", "No files found to extract."), Loc.T("ArchiveUnpacker.titleNoResults", "No results"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNoFilesToExtract", "No files found to extract."),
+                    Loc.T("ArchiveUnpacker.titleNoResults", "No results"), MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
                 return;
             }
 
@@ -2380,10 +2592,14 @@ namespace TTG_Tools
 
                 if (indexes.Length == 0)
                 {
-                    MessageBox.Show(Loc.T("ArchiveUnpacker.msgSelectValidFiles", "Please select valid files from list first."), Loc.T("ArchiveUnpacker.titleNoSelection", "No selected files from list"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show(
+                        Loc.T("ArchiveUnpacker.msgSelectValidFiles", "Please select valid files from list first."),
+                        Loc.T("ArchiveUnpacker.titleNoSelection", "No selected files from list"), MessageBoxButtons.OK,
+                        MessageBoxIcon.Information);
                     return;
                 }
-                if(ttarch != null)
+
+                if (ttarch != null)
                 {
                     string selectedFolder = SelectFolder();
 
@@ -2392,7 +2608,7 @@ namespace TTG_Tools
                         await Task.Run(() => UnpackTtarch(selectedFolder, format, searchPattern, indexes));
                     }
                 }
-                else if(ttarch2 != null)
+                else if (ttarch2 != null)
                 {
                     string selectedFolder = SelectFolder();
 
@@ -2404,7 +2620,9 @@ namespace TTG_Tools
             }
             else
             {
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgSelectFiles", "Please select files from list first."), Loc.T("ArchiveUnpacker.titleNoSelection", "No selected files from list"), MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(Loc.T("ArchiveUnpacker.msgSelectFiles", "Please select files from list first."),
+                    Loc.T("ArchiveUnpacker.titleNoSelection", "No selected files from list"), MessageBoxButtons.OK,
+                    MessageBoxIcon.Information);
             }
         }
 
@@ -2417,9 +2635,10 @@ namespace TTG_Tools
 
         private void searchBtn_Click(object sender, EventArgs e)
         {
-            if((ttarch == null) && (ttarch2 == null))
+            if ((ttarch == null) && (ttarch2 == null))
             {
-                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNothingToSearch", "Nothing to search."), Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show(Loc.T("ArchiveUnpacker.msgNothingToSearch", "Nothing to search."),
+                    Loc.T("Common.error", "Error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             else
             {
@@ -2590,7 +2809,8 @@ namespace TTG_Tools
             if (extraction.Errors.Count > 0)
             {
                 MessageBox.Show(
-                    Loc.T("ArchiveUnpacker.msgFailedExtractList", "The following files could not be extracted:") + "\n\n" + string.Join("\n", extraction.Errors),
+                    Loc.T("ArchiveUnpacker.msgFailedExtractList", "The following files could not be extracted:") +
+                    "\n\n" + string.Join("\n", extraction.Errors),
                     Loc.T("ArchiveUnpacker.titleFilesNotExtracted", "Files not extracted"),
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Warning);
@@ -2664,7 +2884,7 @@ namespace TTG_Tools
                         if (bytes == null) throw new InvalidDataException("Could not read the archive entry.");
 
                         if (decryptLua && (name.EndsWith(".lenc", StringComparison.OrdinalIgnoreCase)
-                            || name.EndsWith(".lua", StringComparison.OrdinalIgnoreCase)))
+                                           || name.EndsWith(".lua", StringComparison.OrdinalIgnoreCase)))
                         {
                             if (name.EndsWith(".lenc", StringComparison.OrdinalIgnoreCase))
                                 name = name.Substring(0, name.Length - 4) + "lua";
@@ -2688,7 +2908,8 @@ namespace TTG_Tools
         private static string WriteDragFile(string tempRoot, string archiveName, byte[] bytes)
         {
             string root = Path.GetFullPath(tempRoot).TrimEnd(Path.DirectorySeparatorChar) + Path.DirectorySeparatorChar;
-            string relative = (archiveName ?? "").Replace('/', Path.DirectorySeparatorChar).TrimStart(Path.DirectorySeparatorChar);
+            string relative = (archiveName ?? "").Replace('/', Path.DirectorySeparatorChar)
+                .TrimStart(Path.DirectorySeparatorChar);
             string outputPath = Path.GetFullPath(Path.Combine(root, relative));
 
             if (!outputPath.StartsWith(root, StringComparison.OrdinalIgnoreCase))
@@ -2703,8 +2924,13 @@ namespace TTG_Tools
         private static async void ScheduleDragFolderCleanup(string path, int delayMilliseconds)
         {
             if (delayMilliseconds > 0) await Task.Delay(delayMilliseconds);
-            try { if (Directory.Exists(path)) Directory.Delete(ToLongPath(path), true); }
-            catch { }
+            try
+            {
+                if (Directory.Exists(path)) Directory.Delete(ToLongPath(path), true);
+            }
+            catch
+            {
+            }
         }
 
         private static void CleanupStaleDragFolders()
@@ -2720,10 +2946,14 @@ namespace TTG_Tools
                         if (Directory.GetCreationTimeUtc(directory) < DateTime.UtcNow.AddDays(-1))
                             Directory.Delete(ToLongPath(directory), true);
                     }
-                    catch { }
+                    catch
+                    {
+                    }
                 }
             }
-            catch { }
+            catch
+            {
+            }
         }
 
         #endregion
@@ -2748,7 +2978,9 @@ namespace TTG_Tools
 
             if ((ttarch == null && ttarch2 == null) || filesDataGridView.SelectedRows.Count == 0)
             {
-                ShowPreviewMessage((ttarch != null || ttarch2 != null) ? Loc.T("ArchiveUnpacker.previewSelectFile", "Select a file to preview it.") : "");
+                ShowPreviewMessage((ttarch != null || ttarch2 != null)
+                    ? Loc.T("ArchiveUnpacker.previewSelectFile", "Select a file to preview it.")
+                    : "");
                 return;
             }
 
@@ -2813,7 +3045,8 @@ namespace TTG_Tools
                     if (bytes == null) return null;
 
                     byte[] previewKey = archKey;
-                    if (tryOtherKeys && IsLuaFileName(fileName) && Methods.isLuaEncrypted(bytes) && !LuaDecryptsWith(bytes, archKey, luaVersion))
+                    if (tryOtherKeys && IsLuaFileName(fileName) && Methods.isLuaEncrypted(bytes) &&
+                        !LuaDecryptsWith(bytes, archKey, luaVersion))
                     {
                         luaGame = FindLuaGameIndex(bytes, luaVersion, selectedGame);
                         if (luaGame >= 0) previewKey = MainMenu.gamelist[luaGame].key;
@@ -2822,7 +3055,8 @@ namespace TTG_Tools
                     return PreviewBuilder.Build(fileName, bytes, previewKey, luaVersion, () => seq != previewSeq);
                 });
 
-                if (luaGame >= 0 && luaGame != gameListCB.SelectedIndex && seq == previewSeq) gameListCB.SelectedIndex = luaGame;
+                if (luaGame >= 0 && luaGame != gameListCB.SelectedIndex && seq == previewSeq)
+                    gameListCB.SelectedIndex = luaGame;
             }
             catch
             {
@@ -2832,14 +3066,18 @@ namespace TTG_Tools
             if (seq != previewSeq)
             {
                 if (result != null && result.Image != null) result.Image.Dispose();
-                if (result != null && result.Pages != null) foreach (var page in result.Pages) if (page != result.Image) page.Dispose();
+                if (result != null && result.Pages != null)
+                    foreach (var page in result.Pages)
+                        if (page != result.Image)
+                            page.Dispose();
                 return;
             }
 
             ShowPreviewResult(result, fileName, fileSize);
         }
 
-        private static byte[] ReadPreviewBytes(ClassesStructs.TtarchClass arc1, ClassesStructs.TtarchClass.ttarchFiles file1,
+        private static byte[] ReadPreviewBytes(ClassesStructs.TtarchClass arc1,
+            ClassesStructs.TtarchClass.ttarchFiles file1,
             ClassesStructs.Ttarch2Class arc2, ClassesStructs.Ttarch2Class.Ttarch2files file2, byte[] archKey)
         {
             if (arc1 != null)
@@ -2864,7 +3102,8 @@ namespace TTG_Tools
         internal Dictionary<string, KeyValuePair<int, byte[]>> SampleFormatsForTest()
         {
             var result = new Dictionary<string, KeyValuePair<int, byte[]>>(StringComparer.OrdinalIgnoreCase);
-            if ((ttarch == null || shownTtarchFiles == null) && (ttarch2 == null || shownTtarch2Files == null)) return result;
+            if ((ttarch == null || shownTtarchFiles == null) && (ttarch2 == null || shownTtarch2Files == null))
+                return result;
 
             byte[] archKey = MainMenu.gamelist[gameListCB.SelectedIndex].key;
             int count = ttarch != null ? shownTtarchFiles.Length : shownTtarch2Files.Length;
@@ -2884,10 +3123,15 @@ namespace TTG_Tools
                 byte[] bytes = null;
                 try
                 {
-                    bytes = ReadPreviewBytes(ttarch, ttarch != null ? shownTtarchFiles[i] : default(ClassesStructs.TtarchClass.ttarchFiles),
-                        ttarch2, ttarch2 != null ? shownTtarch2Files[i] : default(ClassesStructs.Ttarch2Class.Ttarch2files), archKey);
+                    bytes = ReadPreviewBytes(ttarch,
+                        ttarch != null ? shownTtarchFiles[i] : default(ClassesStructs.TtarchClass.ttarchFiles),
+                        ttarch2,
+                        ttarch2 != null ? shownTtarch2Files[i] : default(ClassesStructs.Ttarch2Class.Ttarch2files),
+                        archKey);
                 }
-                catch { }
+                catch
+                {
+                }
 
                 result[ext] = new KeyValuePair<int, byte[]>(1, bytes);
             }
@@ -2895,11 +3139,13 @@ namespace TTG_Tools
             return result;
         }
 
-        internal void BuildAllPreviewsForTest(string extFilter, Action<string, byte[], PreviewBuilder.PreviewResult> onResult, int limit = 0)
+        internal void BuildAllPreviewsForTest(string extFilter,
+            Action<string, byte[], PreviewBuilder.PreviewResult> onResult, int limit = 0)
         {
             int done = 0;
 
-            if ((ttarch == null || shownTtarchFiles == null) && (ttarch2 == null || shownTtarch2Files == null)) return; //archive did not open
+            if ((ttarch == null || shownTtarchFiles == null) && (ttarch2 == null || shownTtarch2Files == null))
+                return; //archive did not open
 
             byte[] archKey = MainMenu.gamelist[gameListCB.SelectedIndex].key;
             int count = ttarch != null ? shownTtarchFiles.Length : shownTtarch2Files.Length;
@@ -2918,13 +3164,19 @@ namespace TTG_Tools
 
                 try
                 {
-                    bytes = ReadPreviewBytes(ttarch, ttarch != null ? shownTtarchFiles[i] : default(ClassesStructs.TtarchClass.ttarchFiles),
-                        ttarch2, ttarch2 != null ? shownTtarch2Files[i] : default(ClassesStructs.Ttarch2Class.Ttarch2files), archKey);
-                    res = bytes == null ? null : PreviewBuilder.Build(name, bytes, archKey, ttarch != null ? ttarch.version : 7);
+                    bytes = ReadPreviewBytes(ttarch,
+                        ttarch != null ? shownTtarchFiles[i] : default(ClassesStructs.TtarchClass.ttarchFiles),
+                        ttarch2,
+                        ttarch2 != null ? shownTtarch2Files[i] : default(ClassesStructs.Ttarch2Class.Ttarch2files),
+                        archKey);
+                    res = bytes == null
+                        ? null
+                        : PreviewBuilder.Build(name, bytes, archKey, ttarch != null ? ttarch.version : 7);
                 }
                 catch (Exception ex)
                 {
-                    res = new PreviewBuilder.PreviewResult { Kind = PreviewBuilder.PreviewKind.None, Info = "EXCEPTION " + ex.Message };
+                    res = new PreviewBuilder.PreviewResult
+                        { Kind = PreviewBuilder.PreviewKind.None, Info = "EXCEPTION " + ex.Message };
                 }
 
                 onResult(name, bytes, res);
@@ -2943,12 +3195,15 @@ namespace TTG_Tools
 
         private void ShowPreviewResult(PreviewBuilder.PreviewResult result, string fileName, long fileSize)
         {
-            string baseInfo = fileName + "  |  " + fileSize.ToString("N0") + " " + Loc.T("ArchiveUnpacker.previewBytes", "bytes");
+            string baseInfo = fileName + "  |  " + fileSize.ToString("N0") + " " +
+                              Loc.T("ArchiveUnpacker.previewBytes", "bytes");
 
             if (result == null || result.Kind == PreviewBuilder.PreviewKind.None)
             {
                 //Say why when the builder knows (e.g. "FSB5 codec XMA not supported"), first line only.
-                string why = result != null && !string.IsNullOrEmpty(result.Info) ? result.Info.Split('\n')[0].Trim() : "";
+                string why = result != null && !string.IsNullOrEmpty(result.Info)
+                    ? result.Info.Split('\n')[0].Trim()
+                    : "";
                 ShowPreviewMessage(why.Length > 0 && why.Length <= 140 ? baseInfo + "  |  " + why : "");
                 return;
             }
@@ -3056,9 +3311,12 @@ namespace TTG_Tools
             Control host = previewInfoLabel.Parent;
 
             previewFooterPanel = new Panel { Dock = DockStyle.Bottom, Height = 24 };
-            previewPrevButton = new Button { Text = "◀", Width = 28, Dock = DockStyle.Right, FlatStyle = FlatStyle.System };
-            previewNextButton = new Button { Text = "▶", Width = 28, Dock = DockStyle.Right, FlatStyle = FlatStyle.System };
-            previewPageLabel = new Label { AutoSize = false, Width = 110, Dock = DockStyle.Right, TextAlign = ContentAlignment.MiddleCenter };
+            previewPrevButton = new Button
+                { Text = "◀", Width = 28, Dock = DockStyle.Right, FlatStyle = FlatStyle.System };
+            previewNextButton = new Button
+                { Text = "▶", Width = 28, Dock = DockStyle.Right, FlatStyle = FlatStyle.System };
+            previewPageLabel = new Label
+                { AutoSize = false, Width = 110, Dock = DockStyle.Right, TextAlign = ContentAlignment.MiddleCenter };
             previewPrevButton.Click += (s, e) => ShowPreviewPage(previewPageIndex - 1);
             previewNextButton.Click += (s, e) => ShowPreviewPage(previewPageIndex + 1);
 
@@ -3096,6 +3354,7 @@ namespace TTG_Tools
                     g.FillRectangle(dark, 8, 8, 8, 8);
                 }
             }
+
             checkerBrush = new TextureBrush(tile);
         }
 
@@ -3137,7 +3396,9 @@ namespace TTG_Tools
 
             if (oldPages != null)
             {
-                foreach (Bitmap p in oldPages) if (p != image) p.Dispose();
+                foreach (Bitmap p in oldPages)
+                    if (p != image)
+                        p.Dispose();
             }
             else if (oldImage != null && oldImage != image)
             {
@@ -3147,7 +3408,9 @@ namespace TTG_Tools
             //A single-page list is not kept; drop its extra references.
             if (pages != null && previewPages == null)
             {
-                foreach (Bitmap p in pages) if (p != image) p.Dispose();
+                foreach (Bitmap p in pages)
+                    if (p != image)
+                        p.Dispose();
             }
 
             UpdatePageControls();
@@ -3163,7 +3426,8 @@ namespace TTG_Tools
             UpdatePageControls();
 
             //Keep the "W x H" part of the info line in sync with the page shown.
-            previewInfoLabel.Text = System.Text.RegularExpressions.Regex.Replace(previewInfoLabel.Text, @"\|  \d+ x \d+", "|  " + previewImage.Width + " x " + previewImage.Height);
+            previewInfoLabel.Text = System.Text.RegularExpressions.Regex.Replace(previewInfoLabel.Text,
+                @"\|  \d+ x \d+", "|  " + previewImage.Width + " x " + previewImage.Height);
 
             previewPictureBox.Invalidate();
         }
@@ -3174,7 +3438,8 @@ namespace TTG_Tools
             SetPageControlsVisible(multi);
             if (!multi) return;
 
-            previewPageLabel.Text = string.Format(Loc.T("ArchiveUnpacker.previewPage", "Page {0} of {1}"), previewPageIndex + 1, previewPages.Count);
+            previewPageLabel.Text = string.Format(Loc.T("ArchiveUnpacker.previewPage", "Page {0} of {1}"),
+                previewPageIndex + 1, previewPages.Count);
             previewPrevButton.Enabled = previewPageIndex > 0;
             previewNextButton.Enabled = previewPageIndex < previewPages.Count - 1;
         }
@@ -3198,12 +3463,24 @@ namespace TTG_Tools
             checkerBrush.TranslateTransform(dest.X, dest.Y);
             e.Graphics.FillRectangle(checkerBrush, dest);
 
-            e.Graphics.InterpolationMode = scale < 1.0 ? System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic : System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+            e.Graphics.InterpolationMode = scale < 1.0
+                ? System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic
+                : System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
             e.Graphics.PixelOffsetMode = System.Drawing.Drawing2D.PixelOffsetMode.Half;
             e.Graphics.DrawImage(img, dest);
         }
 
         #endregion
+
+        private void filesDataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        private void label2_Click(object sender, EventArgs e)
+        {
+            throw new System.NotImplementedException();
+        }
     }
 
     internal sealed class DragAwareDataGridView : DataGridView

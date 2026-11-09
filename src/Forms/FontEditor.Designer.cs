@@ -1,4 +1,4 @@
-﻿namespace TTG_Tools
+﻿namespace TTG_Tools.Forms
 {
     partial class FontEditor
     {

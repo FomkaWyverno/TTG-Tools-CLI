@@ -10,7 +10,7 @@ using System.Windows.Forms;
 using TTG_Tools.ClassesStructs;
 using TTG_Tools.Graphics.Swizzles;
 
-namespace TTG_Tools
+namespace TTG_Tools.Forms
 {
     public partial class FontEditor : Form
     {

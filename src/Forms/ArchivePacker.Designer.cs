@@ -90,7 +90,7 @@
             // ttarchRB
             // 
             this.ttarchRB.AutoSize = true;
-            this.ttarchRB.Location = new System.Drawing.Point(4, 15);
+            this.ttarchRB.Location = new System.Drawing.Point(4, 18);
             this.ttarchRB.Margin = new System.Windows.Forms.Padding(2);
             this.ttarchRB.Name = "ttarchRB";
             this.ttarchRB.Size = new System.Drawing.Size(126, 17);
@@ -391,7 +391,6 @@
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2);
             this.MaximizeBox = false;
-            this.MinimizeBox = true;
             this.Name = "ArchivePacker";
             this.Text = "Archive Packer";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.ArchivePacker_FormClosing);
@@ -402,7 +401,6 @@
             this.groupBox2.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion

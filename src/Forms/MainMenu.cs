@@ -3,19 +3,39 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+using TTG_Tools.Forms;
 
 namespace TTG_Tools
 {
     public partial class MainMenu : Form
     {
-        public static Settings settings = new Settings("", "", 1251, false, false, false, true, false, 0, false, false, false, false, false, false, 0, 0, "", "", "", false, false, false, false, 0, 0, false, false, false, false, false, false, false, false, false, false, -1, false);
+        public static Settings settings = new Settings("", "", 1251, false, false, false, true, false, 0, false, false,
+            false, false, false, false, 0, 0, "", "", "", false, false, false, false, 0, 0, false, false, false, false,
+            false, false, false, false, false, false, -1, false);
 
         [DllImport("kernel32.dll")]
         public static extern void SetProcessWorkingSetSize(IntPtr hWnd, int i, int j);
 
-        public static string[] languagesASCII = { "Albanian (1250)", "Albanian (1252)", "Albanian (1258)", "Arabic", "Basque", "Belarusian", "Bosnian Cyrillic (1251)", "Bulgarian", "Catalan", "Czech", "Danish (1252)", "Danish (1254)", "Danish (1258)", "Dutch", "Estonian (1252)", "Estonian (1257)", "Faroese", "Finnish (1252)", "Finnish (1254)", "Finnish (1258)", "French (1252)", "French (1254)", "French (1258)", "Gagauz", "German (1250)", "German (1252)", "German (1254)", "German (1258)", "Greek", "Hebrew", "Hungarian", "Icelandic", "Irish (1252)", "Irish (1258)", "Italian (1252)", "Italian (1254)", "Latgalian", "Latvian", "Lithuanian", "Luxembourgish (1250)", "Luxembourgish (1252)", "Luxembourgish (1254)", "Luxembourgish (1258)", "Macedonian", "Montenegrin", "Norwegian (1252)", "Norwegian (1254)", "Norwegian (1258)", "Occitan", "Persian", "Polish", "Portuguese (Brazilian) (1252)", "Portuguese (1254)", "Romanian (1250)", "Romansh", "Rotokas (1250)", "Rotokas (1251)", "Rotokas (1252)", "Rotokas (1254)", "Russian", "Rusyn", "Serbian Cyrillic (1251)", "Serbo-Croatian", "Slovak", "Slovene (1250)", "Slovene (1252)", "Spanish (1252)", "Spanish (1254)", "Spanish (1258)", "Swahili", "Swedish (1252)", "Swedish (1254)", "Swedish (1258)", "Thai", "Tswana (1252)", "Tswana (1254)", "Tswana (1258)", "Turkish", "Ukrainian", "Urdu", "Vietnamese" };
+        public static string[] languagesASCII =
+        {
+            "Albanian (1250)", "Albanian (1252)", "Albanian (1258)", "Arabic", "Basque", "Belarusian",
+            "Bosnian Cyrillic (1251)", "Bulgarian", "Catalan", "Czech", "Danish (1252)", "Danish (1254)",
+            "Danish (1258)", "Dutch", "Estonian (1252)", "Estonian (1257)", "Faroese", "Finnish (1252)",
+            "Finnish (1254)", "Finnish (1258)", "French (1252)", "French (1254)", "French (1258)", "Gagauz",
+            "German (1250)", "German (1252)", "German (1254)", "German (1258)", "Greek", "Hebrew", "Hungarian",
+            "Icelandic", "Irish (1252)", "Irish (1258)", "Italian (1252)", "Italian (1254)", "Latgalian", "Latvian",
+            "Lithuanian", "Luxembourgish (1250)", "Luxembourgish (1252)", "Luxembourgish (1254)",
+            "Luxembourgish (1258)", "Macedonian", "Montenegrin", "Norwegian (1252)", "Norwegian (1254)",
+            "Norwegian (1258)", "Occitan", "Persian", "Polish", "Portuguese (Brazilian) (1252)", "Portuguese (1254)",
+            "Romanian (1250)", "Romansh", "Rotokas (1250)", "Rotokas (1251)", "Rotokas (1252)", "Rotokas (1254)",
+            "Russian", "Rusyn", "Serbian Cyrillic (1251)", "Serbo-Croatian", "Slovak", "Slovene (1250)",
+            "Slovene (1252)", "Spanish (1252)", "Spanish (1254)", "Spanish (1258)", "Swahili", "Swedish (1252)",
+            "Swedish (1254)", "Swedish (1258)", "Thai", "Tswana (1252)", "Tswana (1254)", "Tswana (1258)", "Turkish",
+            "Ukrainian", "Urdu", "Vietnamese"
+        };
 
-        public static List<keysEncryption> gamelist = new List<keysEncryption>(); // List of class for collecting encryption keys
+        public static List<keysEncryption>
+            gamelist = new List<keysEncryption>(); // List of class for collecting encryption keys
 
         public MainMenu()
         {
@@ -106,7 +126,9 @@ namespace TTG_Tools
             public byte[] key;
             public string gamename;
 
-            public keysEncryption() { }
+            public keysEncryption()
+            {
+            }
 
             public keysEncryption(byte[] _key,
                 string _gamename)
@@ -116,9 +138,8 @@ namespace TTG_Tools
             }
         }
 
-        private void MainMenu_Load(object sender, EventArgs e)
+        public static void InitializeGameList()
         {
-            #region Adding blowfish encryption keys
             byte[] TelltaleTexasHoldEm = { 0x8f, 0xd8, 0x98, 0x99, 0x96, 0xbc, 0xa2, 0xae, 0xd7, 0xde, 0xc5, 0xd3, 0x9d, 0xca, 0xc5, 0xa7, 0xd8, 0x95, 0x92, 0xe9, 0x8d, 0xe4, 0xa1, 0xd4, 0xd7, 0x71, 0xde, 0xc0, 0x9e, 0xde, 0xb1, 0xa3, 0xca, 0xaa, 0xa4, 0x9f, 0xd0, 0xce, 0x9e, 0xde, 0xc5, 0xe3, 0xe3, 0xd1, 0xa9, 0x82, 0xc1, 0xda, 0xaa, 0xd5, 0x76, 0xa2, 0xdb, 0xd7, 0xb1 };
             gamelist.Add(new keysEncryption(TelltaleTexasHoldEm, "Telltale Texas Holdem"));
 
@@ -337,7 +358,12 @@ namespace TTG_Tools
 
             byte[] PN1R = { 0x82, 0xCE, 0x99, 0x99, 0x86, 0xDE, 0x9C, 0xB7, 0xEB, 0xBC, 0xE4, 0xCF, 0x97, 0xD7, 0x84, 0x87, 0x99, 0x6D, 0x92, 0xE3, 0xA2, 0xD7, 0xA8, 0xD8, 0xD9, 0x9A, 0xBF, 0xC4, 0xA4, 0xD1, 0xD3, 0x65, 0x8F, 0x75, 0x75, 0xB4, 0xCD, 0xC8, 0x9B, 0xDE, 0xDE, 0xE8, 0xF1, 0xBC, 0xA6, 0x9D, 0xB7, 0xE1, 0x76, 0x93, 0x56, 0x76, 0xD5, 0xDE, 0xA4 };
             gamelist.Add(new keysEncryption(PN1R, "Poker Night at the Inventory - Remastered"));
+        }
 
+    private void MainMenu_Load(object sender, EventArgs e)
+        {
+            #region Adding blowfish encryption keys
+            InitializeGameList();
             #endregion
 
             //Program.Main already loads the settings before constructing any form so the
