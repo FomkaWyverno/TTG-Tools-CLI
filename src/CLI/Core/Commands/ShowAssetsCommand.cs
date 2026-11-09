@@ -48,8 +48,11 @@ namespace TTG_Tools.CLI.Core.Commands
         private void ShowAssets(string archivePath, string gameName)
         {
             var archiveUnpacker = new ArchiveUnpacker();
-            
-            
+
+            if (gameName != null)
+            {
+                ChooseGame(archiveUnpacker, gameName);
+            }
             
             var task = archiveUnpacker.OpenArchiveFileAsync(archivePath);
             
