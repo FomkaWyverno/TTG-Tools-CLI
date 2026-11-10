@@ -220,6 +220,11 @@ namespace TTG_Tools
             return fi[i].Name.Substring(0, (fi[i].Name.Length - fi[i].Extension.Length));
         }
 
+        public void DecryptClick()
+        {
+            buttonDecrypt_Click(this, EventArgs.Empty);
+        }
+        
         private void buttonDecrypt_Click(object sender, EventArgs e)
         {
             if (MainMenu.settings.clearMessages) listBox1.Items.Clear();

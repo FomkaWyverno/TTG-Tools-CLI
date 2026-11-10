@@ -550,7 +550,7 @@ namespace TTG_Tools
             DialogResult = DialogResult.Cancel;
             Close();
         }
-
+        
         private bool SaveSettings(bool closeAfterSave)
         {
             ApplyUiToSettings();
