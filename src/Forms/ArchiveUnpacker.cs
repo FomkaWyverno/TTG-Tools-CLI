@@ -2526,7 +2526,7 @@ namespace TTG_Tools
 
             if (ttarch != null)
             {
-                string selectedFolder = SelectFolder();
+                string selectedFolder = outputDir ?? SelectFolder();
 
                 if (!string.IsNullOrEmpty(selectedFolder))
                 {

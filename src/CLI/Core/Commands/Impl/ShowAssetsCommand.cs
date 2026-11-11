@@ -52,10 +52,9 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
             {
                 var assetInfos = ArchiveUnpackerHeadless.Instance.GetAssetInfos(archivePath, gameName);
 
+                
                 var table = new Table();
                 table.Border(TableBorder.Ascii);
-
-
                 table.AddColumns("FileName", "FileType", "FileSize");
 
                 foreach (var item in assetInfos) table.AddRow(item.FileName, item.FileType, item.FileSize);

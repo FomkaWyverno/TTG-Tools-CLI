@@ -18,7 +18,7 @@ namespace TTG_Tools.CLI.Core
         private readonly Dictionary<string, ICommand> _commands = new Dictionary<string, ICommand>(StringComparer.OrdinalIgnoreCase);
         public IReadOnlyDictionary<string, ICommand> Commands => _commands;
         
-        public CliRouter()
+        private CliRouter()
         {
             DiscoverCommands();
         }
