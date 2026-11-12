@@ -57,7 +57,7 @@ namespace TTG_Tools.CLI.Core.Headless
             Directory.CreateDirectory(outputFolderPath);
             MainMenu.settings.pathForOutputFolder = outputFolderPath;
         }
-
+        
         
         /// <summary>
         /// Зберігає поточні налаштування головного меню у файл конфігурації.

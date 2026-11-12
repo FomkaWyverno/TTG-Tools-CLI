@@ -3,13 +3,21 @@ using System.Collections.Generic;
 using System.Windows.Forms;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace TTG_Tools
 {
+    public class ExportException : Exception
+    {
+        public ExportException(string message, Exception inner = null) : base(message, inner) { }
+    }
+
     public partial class AutoPacker : Form
     {
         private readonly int _logBottomMargin;
         private bool loadingSettings;
+
+        public ComboBox BlowfishKeysComboBox => comboBox1;
 
         public AutoPacker()
         {
@@ -83,11 +91,13 @@ namespace TTG_Tools
             if (textBox1.Right < comboBox1.Right)
                 textBox1.Width = comboBox1.Right - textBox1.Left;
 
-            int leftContentRight = Math.Max(label1.Right, Math.Max(textBox1.Right, Math.Max(buttonDecrypt.Right, sortLabel.Right)));
+            int leftContentRight = Math.Max(label1.Right,
+                Math.Max(textBox1.Right, Math.Max(buttonDecrypt.Right, sortLabel.Right)));
             groupBox1.Left = Math.Max(368, leftContentRight + 18);
 
             int optionRight = 0;
-            foreach (Control control in new Control[] { checkEncLangdb, checkEncDDS, label2, comboBox2, CheckNewEngine, checkIOS, labelUnicode })
+            foreach (Control control in new Control[]
+                         { checkEncLangdb, checkEncDDS, label2, comboBox2, CheckNewEngine, checkIOS, labelUnicode })
             {
                 if (control.Visible && control.Right > optionRight)
                     optionRight = control.Right;
@@ -153,10 +163,12 @@ namespace TTG_Tools
                 if (report.StartsWith("##POPUP##"))
                 {
                     string realMessage = report.Substring(9); // Remove o prefixo
-                    MessageBox.Show(realMessage, Loc.T("AutoPacker.titleErrorReport", "Error Report"), MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    MessageBox.Show(realMessage, Loc.T("AutoPacker.titleErrorReport", "Error Report"),
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
 
                     // Adiciona um aviso no log apenas para constar
-                    listBox1.Items.Add(Loc.T("AutoPacker.reportShownOnScreen", ">>> Error report displayed on screen. <<<"));
+                    listBox1.Items.Add(Loc.T("AutoPacker.reportShownOnScreen",
+                        ">>> Error report displayed on screen. <<<"));
 
                     // Rola para o final
                     listBox1.SelectedIndex = listBox1.Items.Count - 1;
@@ -182,7 +194,9 @@ namespace TTG_Tools
             }
             catch
             {
-                MessageBox.Show(Loc.T("AutoPacker.msgFixConfigPath", "Open and close program or fix path in config.xml!"), Loc.T("Common.errorExcl", "Error!"));
+                MessageBox.Show(
+                    Loc.T("AutoPacker.msgFixConfigPath", "Open and close program or fix path in config.xml!"),
+                    Loc.T("Common.errorExcl", "Error!"));
                 return;
             }
 
@@ -194,7 +208,9 @@ namespace TTG_Tools
             string versionOfGame = MainMenu.gamelist[comboBox1.SelectedIndex].gamename;
             numKey = comboBox1.SelectedIndex;
             selected_index = comboBox2.SelectedIndex;
-            byte[] encKey = MainMenu.settings.customKey ? Methods.stringToKey(MainMenu.settings.encCustomKey) : MainMenu.gamelist[numKey].key;
+            byte[] encKey = MainMenu.settings.customKey
+                ? Methods.stringToKey(MainMenu.settings.encCustomKey)
+                : MainMenu.gamelist[numKey].key;
 
             //Create import files thread
             var processImport = new ForThreads();
@@ -220,12 +236,24 @@ namespace TTG_Tools
             return fi[i].Name.Substring(0, (fi[i].Name.Length - fi[i].Extension.Length));
         }
 
-        public void DecryptClick()
+        public void DecryptExportClickSync(List<ReportHandler>  reportHandlers = null)
         {
-            buttonDecrypt_Click(this, EventArgs.Empty);
+            DecryptAndExport(reportHandlers).Join();
         }
-        
+
         private void buttonDecrypt_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                DecryptAndExport();
+            }
+            catch (ExportException ex)
+            {
+                MessageBox.Show(ex.Message, Loc.T("Common.errorExcl", "Error!"));
+            }
+        }
+
+        private Thread DecryptAndExport(List<ReportHandler> reportHandlers = null)
         {
             if (MainMenu.settings.clearMessages) listBox1.Items.Clear();
 
@@ -233,7 +261,9 @@ namespace TTG_Tools
             numKey = comboBox1.SelectedIndex;
             selected_index = comboBox2.SelectedIndex;
 
-            byte[] encKey = MainMenu.settings.customKey ? Methods.stringToKey(MainMenu.settings.encCustomKey) : MainMenu.gamelist[comboBox1.SelectedIndex].key;
+            byte[] encKey = MainMenu.settings.customKey
+                ? Methods.stringToKey(MainMenu.settings.encCustomKey)
+                : MainMenu.gamelist[comboBox1.SelectedIndex].key;
 
             string debug = null;
 
@@ -245,15 +275,25 @@ namespace TTG_Tools
                 DirectoryInfo di = new DirectoryInfo(MainMenu.settings.pathForInputFolder);
                 fi = di.GetFiles();
             }
-            catch
+            catch (Exception ex)
             {
-                MessageBox.Show(Loc.T("AutoPacker.msgFixConfigPath", "Open and close program or fix path in config.xml!"), Loc.T("Common.errorExcl", "Error!"));
-                return;
+                throw new ExportException(
+                    Loc.T("AutoPacker.msgFixConfigPath", "Open and close program or fix path in config.xml!"), ex);
             }
 
             //Создаем нить для экспорта текста из LANGDB
             var processExport = new ForThreads();
-            processExport.ReportForWork += AddNewReport;
+            processExport.ReportForWork += AddNewReport; // Для UI компонента
+
+            if (reportHandlers != null) // Додаткові репортери
+            {
+                foreach (var handler in reportHandlers)
+                {
+                    processExport.ReportForWork += handler;
+                }
+            }
+
+
             List<string> parametresExport = new List<string>();
             parametresExport.Add(MainMenu.settings.pathForInputFolder);
             parametresExport.Add(MainMenu.settings.pathForOutputFolder);
@@ -263,14 +303,17 @@ namespace TTG_Tools
 
             threadExport = new Thread(new ParameterizedThreadStart(processExport.DoExportEncoding));
             threadExport.Start(parametresExport);
-
-            if (debug != null)
+            
+            if (debug != null) // <-- What is this? Bullshit
             {
                 StreamWriter sw = new StreamWriter(MainMenu.settings.pathForOutputFolder + "\\bugs.txt");
                 sw.Write(debug);
                 sw.Close();
-                listBox1.Items.Add(Loc.T("AutoPacker.reportBugsWritten", "Bugs have been written in file") + " " + MainMenu.settings.pathForOutputFolder + "\\bugs.txt");
+                listBox1.Items.Add(Loc.T("AutoPacker.reportBugsWritten", "Bugs have been written in file") + " " +
+                                   MainMenu.settings.pathForOutputFolder + "\\bugs.txt");
             }
+
+            return threadExport;
         }
 
         public class Prop
@@ -279,7 +322,10 @@ namespace TTG_Tools
             public byte[] lenght_of_text;
             public string text;
 
-            public Prop() { }
+            public Prop()
+            {
+            }
+
             public Prop(byte[] id, byte[] lenght_of_text, string text)
             {
                 this.id = id;
@@ -288,62 +334,74 @@ namespace TTG_Tools
             }
         }
 
+        /// <summary>
+        /// Вручну завантажує автопакувальник
+        /// </summary>
+        public void AutoPackerLoad()
+        {
+            AutoPacker_Load(this, EventArgs.Empty);
+        }
         private void AutoPacker_Load(object sender, EventArgs e)
         {
             loadingSettings = true;
             try
             {
+                #region Load blowfish key list
 
-            #region Load blowfish key list
+                comboBox1.Items.Clear();
 
-            comboBox1.Items.Clear();
+                for (int i = 0; i < MainMenu.gamelist.Count; i++)
+                {
+                    comboBox1.Items.Add(i + ". " + MainMenu.gamelist[i].gamename);
+                }
 
-            for (int i = 0; i < MainMenu.gamelist.Count; i++)
-            {
-                comboBox1.Items.Add(i + ". " + MainMenu.gamelist[i].gamename);
-            }
+                #endregion
 
-            #endregion
+                comboBox1.SelectedIndex = GetSafeSelectedIndex(MainMenu.settings.encKeyIndex, comboBox1.Items.Count);
+                comboBox2.SelectedIndex = GetSafeSelectedIndex(MainMenu.settings.versionEnc, comboBox2.Items.Count);
+                bool hasGameKeys = comboBox1.SelectedIndex >= 0;
+                button1.Enabled = hasGameKeys;
+                buttonDecrypt.Enabled = hasGameKeys;
+                labelUnicode.Text = MainMenu.settings.unicodeSettings == 0
+                    ? Loc.T("AutoPacker.unicodeSet", "Unicode is set.")
+                    : Loc.T("AutoPacker.unicodeNotSet", "Unicode is not set.");
+                sortLabel.Text = MainMenu.settings.sortSameString
+                    ? Loc.T("AutoPacker.sortWarning",
+                        "Warning! Some files may be slowly extract due enabled sort strings.")
+                    : "";
+                AlignTopAreaAndLog();
+                checkEncDDS.Checked = MainMenu.settings.encDDSonly;
+                checkIOS.Checked = MainMenu.settings.iOSsupport;
+                checkEncLangdb.Checked = MainMenu.settings.encLangdb;
+                CheckNewEngine.Checked = MainMenu.settings.encNewLua;
 
-            comboBox1.SelectedIndex = GetSafeSelectedIndex(MainMenu.settings.encKeyIndex, comboBox1.Items.Count);
-            comboBox2.SelectedIndex = GetSafeSelectedIndex(MainMenu.settings.versionEnc, comboBox2.Items.Count);
-            bool hasGameKeys = comboBox1.SelectedIndex >= 0;
-            button1.Enabled = hasGameKeys;
-            buttonDecrypt.Enabled = hasGameKeys;
-            labelUnicode.Text = MainMenu.settings.unicodeSettings == 0
-                ? Loc.T("AutoPacker.unicodeSet", "Unicode is set.")
-                : Loc.T("AutoPacker.unicodeNotSet", "Unicode is not set.");
-            sortLabel.Text = MainMenu.settings.sortSameString ? Loc.T("AutoPacker.sortWarning", "Warning! Some files may be slowly extract due enabled sort strings.") : "";
-            AlignTopAreaAndLog();
-            checkEncDDS.Checked = MainMenu.settings.encDDSonly;
-            checkIOS.Checked = MainMenu.settings.iOSsupport;
-            checkEncLangdb.Checked = MainMenu.settings.encLangdb;
-            CheckNewEngine.Checked = MainMenu.settings.encNewLua;
+                if (MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch ||
+                    MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita ||
+                    MainMenu.settings.swizzleNintendoWii || MainMenu.settings.swizzlePS2 ||
+                    MainMenu.settings.swizzleNintendoWiiU || MainMenu.settings.swizzlePS3)
+                {
+                    if (MainMenu.settings.swizzleNintendoSwitch) rbSwitchSwizzle.Checked = true;
+                    else if (MainMenu.settings.swizzlePS4) rbPS4Swizzle.Checked = true;
+                    else if (MainMenu.settings.swizzleXbox360) rbXbox360Swizzle.Checked = true;
+                    else if (MainMenu.settings.swizzlePSVita) rbPSVitaSwizzle.Checked = true;
+                    else if (MainMenu.settings.swizzleNintendoWii) rbWiiSwizzle.Checked = true;
+                    else if (MainMenu.settings.swizzlePS2) rbPS2Swizzle.Checked = true;
+                    else if (MainMenu.settings.swizzleNintendoWiiU) rbWiiUSwizzle.Checked = true;
+                    else if (MainMenu.settings.swizzlePS3) rbPS3Swizzle.Checked = true;
+                }
+                else rbNoSwizzle.Checked = true;
 
-            if (MainMenu.settings.swizzlePS4 || MainMenu.settings.swizzleNintendoSwitch || MainMenu.settings.swizzleXbox360 || MainMenu.settings.swizzlePSVita || MainMenu.settings.swizzleNintendoWii || MainMenu.settings.swizzlePS2 || MainMenu.settings.swizzleNintendoWiiU || MainMenu.settings.swizzlePS3)
-            {
-                if (MainMenu.settings.swizzleNintendoSwitch) rbSwitchSwizzle.Checked = true;
-                else if (MainMenu.settings.swizzlePS4) rbPS4Swizzle.Checked = true;
-                else if (MainMenu.settings.swizzleXbox360) rbXbox360Swizzle.Checked = true;
-                else if (MainMenu.settings.swizzlePSVita) rbPSVitaSwizzle.Checked = true;
-                else if (MainMenu.settings.swizzleNintendoWii) rbWiiSwizzle.Checked = true;
-                else if (MainMenu.settings.swizzlePS2) rbPS2Swizzle.Checked = true;
-                else if (MainMenu.settings.swizzleNintendoWiiU) rbWiiUSwizzle.Checked = true;
-                else if (MainMenu.settings.swizzlePS3) rbPS3Swizzle.Checked = true;
-            }
-            else rbNoSwizzle.Checked = true;
+                if (MainMenu.settings.customKey && Methods.stringToKey(MainMenu.settings.encCustomKey) != null)
+                {
+                    checkCustomKey.Checked = MainMenu.settings.customKey;
+                    textBox1.Text = MainMenu.settings.encCustomKey;
+                }
 
-            if (MainMenu.settings.customKey && Methods.stringToKey(MainMenu.settings.encCustomKey) != null)
-            {
-                checkCustomKey.Checked = MainMenu.settings.customKey;
-                textBox1.Text = MainMenu.settings.encCustomKey;
-            }
-
-            if (MainMenu.settings.ASCII_N == 1252)
-            {
-                //Make unvisible that option for users with windows-1252 encoding
-                labelUnicode.Visible = false;
-            }
+                if (MainMenu.settings.ASCII_N == 1252)
+                {
+                    //Make unvisible that option for users with windows-1252 encoding
+                    labelUnicode.Visible = false;
+                }
             }
             finally
             {
@@ -366,7 +424,6 @@ namespace TTG_Tools
 
         private void groupBox1_Enter(object sender, EventArgs e)
         {
-
         }
 
         private void CheckNewEngine_CheckedChanged(object sender, EventArgs e)
@@ -452,7 +509,9 @@ namespace TTG_Tools
                 ? Loc.T("AutoPacker.unicodeSet", "Unicode is set.")
                 : Loc.T("AutoPacker.unicodeNotSet", "Unicode is not set.");
 
-            sortLabel.Text = MainMenu.settings.sortSameString ? Loc.T("AutoPacker.sortWarning", "Warning! Some files may be slowly extract due enabled sort strings.") : "";
+            sortLabel.Text = MainMenu.settings.sortSameString
+                ? Loc.T("AutoPacker.sortWarning", "Warning! Some files may be slowly extract due enabled sort strings.")
+                : "";
             AlignTopAreaAndLog();
         }
 

@@ -6,10 +6,10 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
     [Command("--edit-settings", @"Set program settings via arguments. Usage: --set-settings [--format] [--importNames] [--sortSame] [--exportId] [--ignoreEmpty]
                     Example: --set-settings --importNames=True --sortSame=True
                     --format: Text asset type: tsv, new, telltale, plain or other text switch to plain format.
-                    --importNames: Import actor names to text assets
-                    --sortSame: Sort by identical strings
-                    --exportId: Export real ID
-                    --ignoreEmpty: Ignore empty strings")]
+                    --import-names: Import actor names to text assets
+                    --sort-same: Sort by identical strings
+                    --export-id: Export real ID
+                    --ignore-empty: Ignore empty strings")]
     public class EditSettingsCommand : ICommand
     {
         public void Run(string[] args)

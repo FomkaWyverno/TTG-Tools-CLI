@@ -133,6 +133,7 @@
     <Compile Include="CLI\Core\Commands\Helpers\TaskExtensions.cs" />
     <Compile Include="CLI\Core\Commands\ICommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\EditSettingsCommand.cs" />
+    <Compile Include="CLI\Core\Commands\Impl\ExportAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\HelpCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowSettingsCommand.cs" />

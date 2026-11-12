@@ -67,14 +67,7 @@
             this.comboBox1.DisplayMember = "0";
             this.comboBox1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.comboBox1.FormattingEnabled = true;
-            this.comboBox1.Items.AddRange(new object[] {
-            "Before The Wolf Among Us",
-            "Sam & Max 201",
-            "Sam & Max 202",
-            "Sam & Max 203",
-            "Sam & Max 204",
-            "Sam & Max 205",
-            "After The Wolf Among Us"});
+            this.comboBox1.Items.AddRange(new object[] { "Before The Wolf Among Us", "Sam & Max 201", "Sam & Max 202", "Sam & Max 203", "Sam & Max 204", "Sam & Max 205", "After The Wolf Among Us" });
             this.comboBox1.Location = new System.Drawing.Point(22, 63);
             this.comboBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
             this.comboBox1.Name = "comboBox1";
@@ -95,9 +88,7 @@
             // 
             // listBox1
             // 
-            this.listBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.listBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
             this.listBox1.FormattingEnabled = true;
             this.listBox1.Location = new System.Drawing.Point(10, 206);
             this.listBox1.Margin = new System.Windows.Forms.Padding(4, 3, 4, 3);
@@ -173,7 +164,7 @@
             this.rbPS4Swizzle.AutoSize = true;
             this.rbPS4Swizzle.Location = new System.Drawing.Point(16, 35);
             this.rbPS4Swizzle.Name = "rbPS4Swizzle";
-            this.rbPS4Swizzle.Size = new System.Drawing.Size(91, 17);
+            this.rbPS4Swizzle.Size = new System.Drawing.Size(87, 17);
             this.rbPS4Swizzle.TabIndex = 1;
             this.rbPS4Swizzle.TabStop = true;
             this.rbPS4Swizzle.Text = "PlayStation 4";
@@ -227,21 +218,21 @@
             this.rbPS2Swizzle.Text = "PlayStation 2";
             this.rbPS2Swizzle.UseVisualStyleBackColor = true;
             this.rbPS2Swizzle.CheckedChanged += new System.EventHandler(this.rbPS2Swizzle_CheckedChanged);
-            //
+            // 
             // rbWiiUSwizzle
-            //
+            // 
             this.rbWiiUSwizzle.AutoSize = true;
             this.rbWiiUSwizzle.Location = new System.Drawing.Point(16, 131);
             this.rbWiiUSwizzle.Name = "rbWiiUSwizzle";
-            this.rbWiiUSwizzle.Size = new System.Drawing.Size(92, 17);
+            this.rbWiiUSwizzle.Size = new System.Drawing.Size(97, 17);
             this.rbWiiUSwizzle.TabIndex = 7;
             this.rbWiiUSwizzle.TabStop = true;
             this.rbWiiUSwizzle.Text = "Nintendo Wii U";
             this.rbWiiUSwizzle.UseVisualStyleBackColor = true;
             this.rbWiiUSwizzle.CheckedChanged += new System.EventHandler(this.rbWiiUSwizzle_CheckedChanged);
-            //
+            // 
             // rbPS3Swizzle
-            //
+            // 
             this.rbPS3Swizzle.AutoSize = true;
             this.rbPS3Swizzle.Location = new System.Drawing.Point(16, 147);
             this.rbPS3Swizzle.Name = "rbPS3Swizzle";
@@ -251,7 +242,7 @@
             this.rbPS3Swizzle.Text = "PlayStation 3";
             this.rbPS3Swizzle.UseVisualStyleBackColor = true;
             this.rbPS3Swizzle.CheckedChanged += new System.EventHandler(this.rbPS3Swizzle_CheckedChanged);
-            //
+            // 
             // rbNoSwizzle
             // 
             this.rbNoSwizzle.AutoSize = true;
@@ -312,9 +303,7 @@
             // comboBox2
             // 
             this.comboBox2.FormattingEnabled = true;
-            this.comboBox2.Items.AddRange(new object[] {
-            "Versions 2-6",
-            "Versions 7-9"});
+            this.comboBox2.Items.AddRange(new object[] { "Versions 2-6", "Versions 7-9" });
             this.comboBox2.Location = new System.Drawing.Point(120, 61);
             this.comboBox2.Margin = new System.Windows.Forms.Padding(2);
             this.comboBox2.Name = "comboBox2";
@@ -377,8 +366,7 @@
             // 
             // menuStrip1
             // 
-            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.settingsToolStripMenuItem});
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] { this.settingsToolStripMenuItem });
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.Size = new System.Drawing.Size(821, 24);
@@ -432,7 +420,6 @@
             this.menuStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
-
         }
 
         #endregion
