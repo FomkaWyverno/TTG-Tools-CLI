@@ -4,14 +4,10 @@ using System.Windows.Forms;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using TTG_Tools.Core.Exceptions;
 
 namespace TTG_Tools
 {
-    public class ExportException : Exception
-    {
-        public ExportException(string message, Exception inner = null) : base(message, inner) { }
-    }
-
     public partial class AutoPacker : Form
     {
         private readonly int _logBottomMargin;
@@ -183,7 +179,7 @@ namespace TTG_Tools
             }
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private Thread ImportAssets(List<ReportHandler> reportHandlers = null)
         {
             if (MainMenu.settings.clearMessages) listBox1.Items.Clear();
 
@@ -194,10 +190,9 @@ namespace TTG_Tools
             }
             catch
             {
-                MessageBox.Show(
-                    Loc.T("AutoPacker.msgFixConfigPath", "Open and close program or fix path in config.xml!"),
-                    Loc.T("Common.errorExcl", "Error!"));
-                return;
+                throw new ImportException(Loc.T("AutoPacker.msgFixConfigPath",
+                    "Open and close program or fix path in config.xml!"));
+
             }
 
             /*if (checkUnicode.Checked) MainMenu.settings.unicodeSettings = 0;
@@ -215,6 +210,13 @@ namespace TTG_Tools
             //Create import files thread
             var processImport = new ForThreads();
             processImport.ReportForWork += AddNewReport;
+            if (reportHandlers != null)
+            {
+                foreach (var handler in reportHandlers)
+                {
+                    processImport.ReportForWork += handler;
+                }
+            }
             List<string> parametresImport = new List<string>();
             parametresImport.Add(versionOfGame);
             parametresImport.Add(".dds");
@@ -229,6 +231,29 @@ namespace TTG_Tools
 
             threadImport = new Thread(new ParameterizedThreadStart(processImport.DoImportEncoding));
             threadImport.Start(parametresImport);
+
+            return threadImport;
+        }
+
+        /// <summary>
+        /// Запускає шифрування та імпорт ассетів синхронно
+        /// </summary>
+        /// <param name="reportHandlers"></param>
+        public void EncryptImportAssetsRunSync(List<ReportHandler> reportHandlers = null)
+        {
+            ImportAssets(reportHandlers).Join();
+        }
+        
+        private void button1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                ImportAssets();
+            }
+            catch (ImportException ex)
+            {
+                MessageBox.Show(ex.Message, Loc.T("Common.errorExcl", "Error!"));
+            }
         }
 
         public static string GetNameOnly(int i)

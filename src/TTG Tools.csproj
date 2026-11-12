@@ -130,11 +130,13 @@
     <Compile Include="CLI\Core\CliRouter.cs" />
     <Compile Include="CLI\Core\Commands\CommandAttribute.cs" />
     <Compile Include="CLI\Core\Commands\Helpers\ArchiveErrorHelper.cs" />
+    <Compile Include="CLI\Core\Commands\Helpers\AssetCommandHelper.cs" />
     <Compile Include="CLI\Core\Commands\Helpers\TaskExtensions.cs" />
     <Compile Include="CLI\Core\Commands\ICommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\EditSettingsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ExportAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\HelpCommand.cs" />
+    <Compile Include="CLI\Core\Commands\Impl\ImportAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowSettingsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\SupportedGamesCommand.cs" />
@@ -143,6 +145,8 @@
     <Compile Include="CLI\Core\Headless\AutoPackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\MainMenuHeadless.cs" />
     <Compile Include="CLI\Core\Infrastructure\AssetInfo.cs" />
+    <Compile Include="Core\Exceptions\ExportException.cs" />
+    <Compile Include="Core\Exceptions\ImportException.cs" />
     <Compile Include="Forms\About.cs">
       <SubType>Form</SubType>
     </Compile>

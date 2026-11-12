@@ -5,7 +5,7 @@
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FAbout/@EntryIndexedValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FArchivePacker/@EntryIndexedValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FArchiveUnpacker/@EntryIndexedValue">False</s:Boolean>
-	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FAutoPacker/@EntryIndexedValue">False</s:Boolean>
+	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FAutoPacker/@EntryIndexedValue">True</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FFontEditor/@EntryIndexedValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FLuaEditor/@EntryIndexedValue">False</s:Boolean>
 	<s:Boolean x:Key="/Default/ResxEditorPersonal/CheckedGroups/=TTG_0020Tools_002FForms_002FMainMenu/@EntryIndexedValue">True</s:Boolean>

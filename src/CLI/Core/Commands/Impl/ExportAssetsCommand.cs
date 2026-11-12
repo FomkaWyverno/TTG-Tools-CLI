@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using TTG_Tools.CLI.Core.Commands.Helpers;
 using TTG_Tools.CLI.Core.Headless;
 
 namespace TTG_Tools.CLI.Core.Commands.Impl
@@ -16,47 +17,24 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
 
         public void Run(string[] args)
         {
-            if (args.Length < 3 || !Directory.Exists(args[0]))
-            {
-                Console.WriteLine(@"Uncorrected receive arguments!");
-                HelpCommand.Run(args);
-                return;
-            }
-
-            try
-            {
-                Directory.CreateDirectory(args[1]);
-            }
-            catch (Exception)
-            {
-                Console.WriteLine(@"Invalid output folder!");
-                HelpCommand.Run(args);
-            }
-
-            var menu = MainMenuHeadless.Instance;
-            if (!menu.GetSupportedGames().Exists(k => k.Equals(args[2])))
-            {
-                Console.WriteLine($@"Unsupported game assets! You wrote: ""{args[2]}""");
-                return;
-            }
-
-            var inputAssetsFolder = args[0];
-            var outputAssetsFolder = args[1];
-            var gameName = args[2];
-
+            var context = AssetCommandHelper.ValidateAndPrepare(args, HelpCommand);
+            if (context == null) return;
+            
             var autoPacker = AutoPackerHeadless.Instance;
-
             Console.WriteLine(@"Start decrypt and export assets!");
-            autoPacker.DecryptAndExportAssets(
-                inputAssetsFolder,
-                outputAssetsFolder,
-                gameName,
+            var isDone = autoPacker.DecryptAndExportAssets(
+                context.InputFolder,
+                context.OutputFolder,
+                context.GameName,
                 new List<ReportHandler>()
                 {
                     LogDecrypt
                 }
             );
-            Console.WriteLine(@"Done!");
+
+            Console.WriteLine(isDone
+                ? @"Done!"
+                : @"You wrote game name uncorrected or unsupported. Check supported games by command: --supported-games");
         }
 
         private void LogDecrypt(string report)
