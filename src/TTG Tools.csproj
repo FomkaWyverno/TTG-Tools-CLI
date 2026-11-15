@@ -141,6 +141,7 @@
     <Compile Include="CLI\Core\Commands\Impl\ShowSettingsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\SupportedGamesCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\UnpackArchiveCommand.cs" />
+    <Compile Include="CLI\Core\Headless\ArchivePackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\ArchiveUnpackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\AutoPackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\MainMenuHeadless.cs" />
