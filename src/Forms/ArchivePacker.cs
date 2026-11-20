@@ -9,6 +9,7 @@ using System.Security.Cryptography;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using TTG_Tools.Core.Enums;
 
 namespace TTG_Tools
 {
@@ -1207,6 +1208,32 @@ namespace TTG_Tools
             }
         }
 
+        /// <summary>
+        /// Встановлює певний тип архіву який потрібно пакувати
+        /// </summary>
+        /// <param name="type">Тип архіву .ttarch / .ttarch2</param>
+        public void SetTypeArchive(TtrachTypeEnum type)
+        {
+            switch (type)
+            {
+                case TtrachTypeEnum.TTRACH:
+                {
+                    ttarchRB.Checked = true;
+                    ttarch2RB.Checked = false;
+                    break;
+                }
+
+                case TtrachTypeEnum.TTRACH2:
+                {
+                    ttarch2RB.Checked = true;
+                    ttarchRB.Checked = false;
+                    break;
+                }
+            }
+            ttarchRB_CheckedChanged(this, EventArgs.Empty);
+            ttarch2RB_CheckedChanged(this, EventArgs.Empty);
+        }
+        
         private void ttarchRB_CheckedChanged(object sender, EventArgs e)
         {
             if (!ttarchRB.Checked) return;
@@ -1249,15 +1276,42 @@ namespace TTG_Tools
         {
             if (fbd.ShowDialog() == CommonFileDialogResult.Ok)
             {
-                textBox1.Text = fbd.FileName;
-
-                MainMenu.settings.inputDirPath = textBox1.Text;
-                Settings.SaveConfig(MainMenu.settings);
+                if (!UpdateInputFolder(fbd.FileName))
+                {
+                    MessageBox.Show(@"Selected folder doesn't exists");
+                }
             }
             else
             {
                 textBox1.Clear();
             }
+        }
+
+        /// <summary>
+        /// Встановлює шлях до теки з асетами для пакування архіву.
+        /// </summary>
+        /// <param name="inputFolderPath"></param>
+        private void SetInputFolder(string inputFolderPath)
+        {
+            textBox1.Text = inputFolderPath;
+            MainMenu.settings.inputDirPath = inputFolderPath;
+            Settings.SaveConfig(MainMenu.settings);
+        }
+
+        /// <summary>
+        /// Оновлює шлях до інпут теки де знаходяться асети для пакування у архів.
+        /// </summary>
+        /// <param name="inputFolderPath"></param>
+        /// <returns></returns>
+        public bool UpdateInputFolder(string inputFolderPath)
+        {
+            if (Directory.Exists(inputFolderPath))
+            {
+                SetInputFolder(inputFolderPath);
+                return true;
+            }
+
+            return false;
         }
 
         private void textBox1_Leave(object sender, EventArgs e)
@@ -1435,6 +1489,25 @@ namespace TTG_Tools
             comboGameList.Items.Clear();
         }
 
+        /// <summary>
+        /// Обирає гру зі списку ключів шифрування за її назвою та викликає обробник зміни вибраного елемента.
+        /// </summary>
+        /// <param name="gameName">Назва гри (<c>gamename</c>), яку потрібно знайти у <c>MainMenu.gamelist</c>.</param>
+        /// <returns>
+        /// <see langword="true"/>, якщо гру знайдено і <c>SelectedIndex</c> оновлено;
+        /// інакше — <see langword="false"/>.
+        /// </returns>
+        public bool SetEncryptionKeyGame(string gameName)
+        {
+            var gamelist = (from item in MainMenu.gamelist select item.gamename).ToList();
+            if (!gamelist.Contains(gameName)) return false;
+            
+            var idx = gamelist.IndexOf(gameName);
+            comboGameList.SelectedIndex = idx;
+            comboGameList_SelectedIndexChanged(this, EventArgs.Empty);
+            return true;
+        }
+        
         private void comboGameList_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (loadingSettings) return;
@@ -1468,6 +1541,34 @@ namespace TTG_Tools
             return 0;
         }
 
+        /// <summary>
+        /// Перевіряє стан прапорця шифрування Lua для нових ігор (<c>newEngineLua</c>).
+        /// </summary>
+        /// <returns>
+        /// <see langword="true"/>, якщо прапорець <c>newEngineLua</c> позначений; інакше — <see langword="false"/>.
+        /// </returns>
+        public bool IsVisibleEncryptLuaForNewGamesCheckBox()
+        {
+            return newEngineLua.Checked;
+        }
+
+        /// <summary>
+        /// Встановлює стан прапорця шифрування Lua для нових ігор (<c>newEngineLua</c>) та викликає його обробник зміни стану.
+        /// </summary>
+        /// <param name="value">Бажаний стан прапорця (<c>newEngineLua.Checked</c>).</param>
+        /// <returns>
+        /// <see langword="true"/>, якщо умова перевірки виконана і стан оновлено;
+        /// інакше — <see langword="false"/>.
+        /// </returns>
+        public bool SetEncryptLuaForNewGamesCheckBox(bool value)
+        {
+            if (!IsVisibleEncryptLuaForNewGamesCheckBox()) return false;
+
+            newEngineLua.Checked = value;
+            newEngineLua_CheckedChanged(this, EventArgs.Empty);
+            return true;
+        }
+        
         private void newEngineLua_CheckedChanged(object sender, EventArgs e)
         {
             if (loadingSettings) return;
@@ -1494,6 +1595,15 @@ namespace TTG_Tools
             }
         }
 
+        /// <summary>
+        /// Встановлює стан прапорця вимкнення шифрування Lua-скриптів (<c>DontEncLuaCheck</c>) та примусово викликає його обробник зміни стану.
+        /// </summary>
+        /// <param name="value">Бажаний стан прапорця вимкнення шифрування Lua.</param>
+        public void SetDontEncryptLuaCheckBox(bool value)
+        {
+            DontEncLuaCheck.Checked = value;
+            DontEncLuaCheck_CheckedChanged(this, EventArgs.Empty);
+        }
         private void DontEncLuaCheck_CheckedChanged(object sender, EventArgs e)
         {
             if (loadingSettings) return;
@@ -1501,6 +1611,17 @@ namespace TTG_Tools
             Settings.SaveConfig(MainMenu.settings);
         }
 
+        
+        /// <summary>
+        /// Встановлює стан прапорця шифрування архіву (<c>EncryptIt</c>) та примусово викликає його обробник зміни стану.
+        /// </summary>
+        /// <param name="value">Бажаний стан прапорця шифрування архіву.</param>
+        public void SetEncryptArchiveCheckBox(bool value)
+        {
+            EncryptIt.Checked = value;
+            EncryptIt_CheckedChanged(this, EventArgs.Empty);
+        }
+        
         private void EncryptIt_CheckedChanged(object sender, EventArgs e)
         {
             if (loadingSettings) return;
@@ -1508,13 +1629,55 @@ namespace TTG_Tools
             Settings.SaveConfig(MainMenu.settings);
         }
 
+        /// <summary>
+        /// Перевіряє, чи відображається прапорець увімкнення стиснення на формі.
+        /// </summary>
+        /// <returns>
+        /// <see langword="true"/>, якщо елемент <c>checkCompress</c> видимий; інакше — <see langword="false"/>.
+        /// </returns>
+        public bool IsVisibleCompressionCheckBox()
+        {
+            return checkCompress.Visible;
+        }
+        
+        /// <summary>
+        /// Встановлює стан прапорця увімкнення стиснення, якщо він видимий на формі.
+        /// </summary>
+        /// <param name="value">Бажаний стан прапорця (<c>checkCompress.Checked</c>).</param>
+        /// <returns>
+        /// <see langword="true"/>, якщо прапорець видимий і його стан було оновлено;
+        /// <see langword="false"/>, якщо елемент прихований і значення не застосовано.
+        /// </returns>
+        public bool SetCompressionCheckBox(bool value)
+        {
+            if (!IsVisibleCompressionCheckBox()) return false;
+
+            checkCompress.Checked = value;
+            checkCompress_CheckedChanged(this, EventArgs.Empty);
+            return true;
+        }
+        
         private void checkCompress_CheckedChanged(object sender, EventArgs e)
         {
             if (loadingSettings) return;
             MainMenu.settings.compressArchive = checkCompress.Checked;
             Settings.SaveConfig(MainMenu.settings);
         }
+        
+        public bool IsVisibleXModeCheckBox()
+        {
+            return checkXmode.Visible;
+        }
 
+        public bool SetXModeCheckBox(bool value)
+        {
+            if (!IsVisibleXModeCheckBox()) return false;
+
+            checkXmode.Checked = value;
+            checkXmode_CheckedChanged(this, EventArgs.Empty);
+            return true;
+        }
+        
         private void checkXmode_CheckedChanged(object sender, EventArgs e)
         {
             if (loadingSettings) return;
@@ -1522,6 +1685,17 @@ namespace TTG_Tools
             Settings.SaveConfig(MainMenu.settings);
         }
 
+        /// <summary>
+        /// Повертає список доступних версій архіву з випадаючого списку вибору версії.
+        /// </summary>
+        /// <returns>
+        /// Список текстових представлень елементів із <c>versionSelection.Items</c>.
+        /// Якщо елементів немає, повертає порожній список.
+        /// </returns>
+        public List<string> GetAvailableVersionsOfArchive()
+        {
+            return (from object item in versionSelection.Items select versionSelection.GetItemText(item)).ToList();
+        }
         private void versionSelection_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (ttarchRB.Checked)
@@ -1560,6 +1734,37 @@ namespace TTG_Tools
             }
 
             if (!loadingSettings) SaveSelectedVersion();
+        }
+
+        /// <summary>
+        /// Повертає список доступних типів стиснення зі спадного списку <c>compressionCB</c>.
+        /// </summary>
+        /// <returns>
+        /// Список текстових представлень елементів із <c>compressionCB.Items</c>.
+        /// Якщо елементів немає, повертає порожній список.
+        /// </returns>
+        public List<string> GetAvailableTypeCompression()
+        {
+            return (from object item in compressionCB.Items select compressionCB.GetItemText(item)).ToList();
+        }
+        
+        
+        /// <summary>
+        /// Обирає вказаний тип стиснення у спадному списку <c>compressionCB</c>, якщо він доступний.
+        /// </summary>
+        /// <param name="compressionType">Назва типу стиснення, яку потрібно встановити.</param>
+        /// <returns>
+        /// <see langword="true"/>, якщо тип знайдено у доступних варіантах і <c>SelectedIndex</c> оновлено;
+        /// <see langword="false"/>, якщо такий тип стиснення відсутній у списку.
+        /// </returns>
+        public bool SetTypeCompression(string compressionType)
+        {
+            var availableTypes = GetAvailableTypeCompression();
+            if (!availableTypes.Contains(compressionType)) return false;
+
+            var idx = availableTypes.IndexOf(compressionType);
+            compressionCB.SelectedIndex = idx;
+            return true;
         }
     }
 }

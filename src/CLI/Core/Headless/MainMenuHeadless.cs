@@ -57,41 +57,6 @@ namespace TTG_Tools.CLI.Core.Headless
             Directory.CreateDirectory(outputFolderPath);
             MainMenu.settings.pathForOutputFolder = outputFolderPath;
         }
-
-        /// <summary>
-        /// Перевіряє існування вказаної вхідної теки архіву та, якщо вона існує, 
-        /// встановлює її шлях у налаштуваннях.
-        /// </summary>
-        /// <param name="inputArchiveFolderPath">Шлях до вхідної теки архіву.</param>
-        /// <returns>Повертає <c>true</c>, якщо тека існує і шлях успішно збережено; інакше <c>false</c>.</returns>
-        public bool SetInputArchiveFolder(string inputArchiveFolderPath)
-        {
-            if (!Directory.Exists(inputArchiveFolderPath)) return false;
-            MainMenu.settings.inputDirPath = inputArchiveFolderPath;
-            return true;
-        }
-
-        /// <summary>
-        /// Перевіряє шлях до файлу архіву, створює проміжні теки за потреби 
-        /// та оновлює шлях до архіву в налаштуваннях.
-        /// </summary>
-        /// <param name="archiveFilePath">Повний шлях до файлу архіву.</param>
-        public void SetArchiveFilePath(string archiveFilePath)
-        {
-            if (!string.IsNullOrEmpty(archiveFilePath))
-            {
-                // Отримуємо шлях до теки з переданого шляху до файлу
-                string directoryPath = Path.GetDirectoryName(archiveFilePath);
-        
-                // Якщо шлях містить теку і вона ще не існує — створюємо її
-                if (!string.IsNullOrEmpty(directoryPath) && !Directory.Exists(directoryPath))
-                {
-                    Directory.CreateDirectory(directoryPath);
-                }
-            }
-
-            MainMenu.settings.archivePath = archiveFilePath;
-        }
         
         /// <summary>
         /// Зберігає поточні налаштування головного меню у файл конфігурації.

@@ -19,17 +19,7 @@ namespace TTG_Tools.CLI.Core.Headless
         {
             _archivePacker = new ArchivePacker();
         }
-
-        /// <summary>
-        /// Встановлює теку для ассетів які потрібно запакувати в архів
-        /// </summary>
-        /// <param name="inputPath"></param>
-        /// <returns>Поверне true якщо тека коректна</returns>
-        private bool SetInputFolder(string inputPath)
-        {
-            if (!Directory.Exists(inputPath)) return false;
-
-            return true;
-        }
+        
+        
     }
 }

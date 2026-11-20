@@ -146,6 +146,7 @@
     <Compile Include="CLI\Core\Headless\AutoPackerHeadless.cs" />
     <Compile Include="CLI\Core\Headless\MainMenuHeadless.cs" />
     <Compile Include="CLI\Core\Infrastructure\AssetInfo.cs" />
+    <Compile Include="Core\Enums\TtrachTypeEnum.cs" />
     <Compile Include="Core\Exceptions\ExportException.cs" />
     <Compile Include="Core\Exceptions\ImportException.cs" />
     <Compile Include="Forms\About.cs">

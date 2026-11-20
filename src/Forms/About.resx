@@ -1283,6 +1283,8 @@ That's all... and only start!</value>
         AAAAfwAA/gAAAAD/AAD+AAAAAf8AAP4AAAAD/wAA/gAAAAf/AAD+AAAAD/8AAA==
 </value>
   </data>
-
+  <data name="ArchivePacker_button1_Click_Selected_folder_doesn_t_exist" xml:space="preserve">
+    <value>Selected folder doesn't exist</value>
+  </data>
 </root>
 
