@@ -8,9 +8,9 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
 {
     [Command("--export-assets",
         @"<input-folder> <output-folder> <game-name> | Export game assets from input to output directory.
-  <input-folder>: Path to the directory containing source game assets.
-  <output-folder>: Path to the directory where extracted assets will be saved.
-  <game-name>: Source game name.")]
+                <input-folder>: Path to the directory containing source game assets.
+                <output-folder>: Path to the directory where extracted assets will be saved.
+                <game-name>: Source game name.")]
     public class ExportAssetsCommand : ICommand
     {
         private ICommand HelpCommand => CliRouter.Instance.Commands["--help"];

@@ -8,9 +8,9 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
 {
     [Command("--import-assets",
         @"<input-folder> <output-folder> <game-name> | Import game assets from input to output directory. To import assets, it is important to have the original asset files nearby.
-  <input-folder>: Path to the directory containing to import assets.
-  <output-folder>: Path to the directory where imported assets will be saved.
-  <game-name>: Source game name.")]
+                <input-folder>: Path to the directory containing to import assets.
+                <output-folder>: Path to the directory where imported assets will be saved.
+                <game-name>: Source game name.")]
     public class ImportAssetsCommand : ICommand
     {
         private ICommand HelpCommand => CliRouter.Instance.Commands["--help"];

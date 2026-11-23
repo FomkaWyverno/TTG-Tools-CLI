@@ -137,6 +137,8 @@
     <Compile Include="CLI\Core\Commands\Impl\ExportAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\HelpCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ImportAssetsCommand.cs" />
+    <Compile Include="CLI\Core\Commands\Impl\PackArchiveCommand.cs" />
+    <Compile Include="CLI\Core\Commands\Impl\PackArchiveHelpCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowAssetsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\ShowSettingsCommand.cs" />
     <Compile Include="CLI\Core\Commands\Impl\SupportedGamesCommand.cs" />

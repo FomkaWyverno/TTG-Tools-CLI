@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 
 namespace TTG_Tools.CLI.Core.Commands.Impl
@@ -8,16 +9,19 @@ namespace TTG_Tools.CLI.Core.Commands.Impl
     {
         public void Run(string[] args)
         {
-            var commands = CliRouter.Instance.Commands;
+            var items = CliRouter.Instance.Commands.Values
+                .Select(cmd => cmd.GetType().GetCustomAttribute<CommandAttribute>())
+                .Where(attr => attr != null)
+                .OrderBy(attr => attr.Name, StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
-            foreach (var pair in commands)
+            if (items.Count == 0) return;
+
+            int maxNameLength = items.Max(attr => attr.Name.Length);
+
+            foreach (var cmd in items)
             {
-                var command = pair.Value;
-                var type = command.GetType();
-                var cmd = type.GetCustomAttribute<CommandAttribute>();
-                if (cmd == null) continue;
-
-                Console.WriteLine($@"{cmd.Name}: {cmd.Description}");
+                Console.WriteLine($@"{cmd.Name} {cmd.Description}");
             }
         }
     }
