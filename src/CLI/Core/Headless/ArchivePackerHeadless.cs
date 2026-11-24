@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using TTG_Tools.Core.Enums;
 
 namespace TTG_Tools.CLI.Core.Headless
@@ -20,6 +21,7 @@ namespace TTG_Tools.CLI.Core.Headless
         {
             MainMenu.InitializeGameList();
             _archivePacker = new ArchivePacker();
+            _archivePacker.ManualLoad();
         }
 
         /// <summary>
@@ -70,9 +72,10 @@ namespace TTG_Tools.CLI.Core.Headless
         /// Створює вихідну теку (за потреби) та оновлює шлях збереження архіву в інтерфейсі й конфігурації.
         /// </summary>
         /// <param name="outputFolderPath">Шлях до цільової теки виводу.</param>
-        public void UpdateOutputFolder(string outputFolderPath)
+        /// /// <returns>true - якщо шлях до архіву було встановлено, та за потреби створено дочірню теку, інакше false</returns>
+        public bool UpdateOutputArchive(string outputFolderPath)
         {
-            _archivePacker.UpdateOutputFolder(outputFolderPath);
+            return _archivePacker.UpdateOutputArchive(outputFolderPath);
         }
 
         /// <summary>
@@ -112,7 +115,32 @@ namespace TTG_Tools.CLI.Core.Headless
         {
             return _archivePacker.SetTypeCompression(compressionType);
         }
+
+        /// <summary>
+        /// Обирає гру зі списку ключів шифрування за її назвою та викликає обробник зміни вибраного елемента.
+        /// </summary>
+        /// <param name="gameName">Назва гри (<c>gamename</c>), яку потрібно знайти у <c>MainMenu.gamelist</c>.</param>
+        /// <returns>
+        /// <see langword="true"/>, якщо гру знайдено і <c>SelectedIndex</c> оновлено;
+        /// інакше — <see langword="false"/>.
+        /// </returns>
+        public bool SetEncryptionKeyGame(string gameName)
+        {
+            return _archivePacker.SetEncryptionKeyGame(gameName);
+        }
+
+        public event ReportEventHandler OnReportedAdded
+        {
+            add =>  _archivePacker.OnReportedAdded += value;
+            remove => _archivePacker.OnReportedAdded -= value;
+        }
         
-        
+        /// <summary>
+        /// Запускає створення архіву
+        /// </summary>
+        public Task RunBuild()
+        {
+            return _archivePacker.RunBuild();
+        }
     }
 }

@@ -9,10 +9,13 @@ using System.Security.Cryptography;
 using System.ComponentModel;
 using System.Threading.Tasks;
 using Microsoft.WindowsAPICodePack.Dialogs;
+using TTG_Tools.CLI.Core.Commands.Helpers;
 using TTG_Tools.Core.Enums;
 
 namespace TTG_Tools
 {
+
+    public delegate void ReportEventHandler(string report);
     public partial class ArchivePacker : Form
     {
         CommonOpenFileDialog fbd = new CommonOpenFileDialog(); //Для выбора папки
@@ -199,8 +202,12 @@ namespace TTG_Tools
             Settings.SaveConfig(MainMenu.settings);
         }
 
+        public event ReportEventHandler OnReportedAdded;
+
         public void AddNewReport(string report)
         {
+            OnReportedAdded?.Invoke(report);
+            
             if (messageListBox == null)
             {
                 Console.WriteLine(report);
@@ -1218,6 +1225,14 @@ namespace TTG_Tools
         }
 
 
+        /// <summary>
+        /// Вручну запускає івент завантаження форми
+        /// </summary>
+        public void ManualLoad()
+        { 
+            ArchivePacker_Load(this, EventArgs.Empty);
+        }
+        
         private void ArchivePacker_Load(object sender, EventArgs e)
         {
             loadingSettings = true;
@@ -1397,11 +1412,21 @@ namespace TTG_Tools
         /// <summary>
         /// Створює вихідну теку (за потреби) та оновлює шлях збереження архіву в інтерфейсі й конфігурації.
         /// </summary>
-        /// <param name="outputFolderPath">Шлях до цільової теки виводу.</param>
-        public void UpdateOutputFolder(string outputFolderPath)
+        /// <param name="outputArchivePath">Шлях до цільової теки виводу.</param>
+        /// <returns>true - якщо шлях до архіву було встановлено, та за потреби створено дочірню теку, інакше false</returns>
+        public bool UpdateOutputArchive(string outputArchivePath)
         {
-            Directory.CreateDirectory(outputFolderPath);
-            SetOutputFolder(outputFolderPath);
+            var parentDir = Path.GetDirectoryName(outputArchivePath);
+            if (!string.IsNullOrEmpty(parentDir))
+            {
+                Directory.CreateDirectory(parentDir);
+            }
+            else
+            {
+                return false;
+            }
+            SetOutputFolder(outputArchivePath);
+            return true;
         }
 
         private void textBox1_Leave(object sender, EventArgs e)
@@ -1417,7 +1442,7 @@ namespace TTG_Tools
                 sfd.Filter = "TTARCH archive (*.ttarch) | *.ttarch";
                 if (sfd.ShowDialog() == DialogResult.OK)
                 {
-                    UpdateOutputFolder(sfd.FileName);
+                    UpdateOutputArchive(sfd.FileName);
                 }
                 else
                 {
@@ -1506,7 +1531,15 @@ namespace TTG_Tools
             }
         }
 
-        private async void buildButton_Click(object sender, EventArgs e)
+        /// <summary>
+        /// Запускає створення архіву
+        /// </summary>
+        public Task RunBuild()
+        {
+            return BuildArchive();
+        }
+
+        private async Task BuildArchive()
         {
             if ((MainMenu.settings.inputDirPath != "") && (MainMenu.settings.archivePath != ""))
             {
@@ -1589,6 +1622,11 @@ namespace TTG_Tools
                         Loc.T("Common.error", "Error"));
             }
             else MessageBox.Show(Loc.T("ArchivePacker.msgCheckPaths", "Check paths!"), Loc.T("Common.error", "Error"));
+        }
+        
+        private async void buildButton_Click(object sender, EventArgs e)
+        {
+            await BuildArchive();
         }
 
         private void ArchivePacker_FormClosing(object sender, FormClosingEventArgs e)
