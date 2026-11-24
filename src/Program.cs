@@ -16,7 +16,17 @@ namespace TTG_Tools
         static void Main(string[] args)
         {
             InitializationConfig();
-            CliRouter.Instance.Route(args);
+            if (args.Length > 0)
+            {
+                CliRouter.Instance.Route(args);
+            }
+            else
+            {
+                ApplyDefaultFont();
+                Application.EnableVisualStyles();
+                Application.SetCompatibleTextRenderingDefault(false);
+                Application.Run(FirstTime ? (Form)new SettingsForm() : new MainMenu());
+            }
         }
 
         private static void InitializationConfig()
@@ -25,7 +35,7 @@ namespace TTG_Tools
             string xmlPath = Settings.EnsureConfigAvailable();
             if (File.Exists(xmlPath))
             {
-                FirstTime = true;
+                FirstTime = false;
             }
 
             // Load the saved config early so the interface language is known before any form is
@@ -37,7 +47,7 @@ namespace TTG_Tools
                 MainMenu.settings = earlyConfig;
                 //A recoverable backup/profile is still an existing configuration even when the
                 //primary config.xml was missing or damaged.
-                FirstTime = true;
+                FirstTime = false;
             }
         }
         
