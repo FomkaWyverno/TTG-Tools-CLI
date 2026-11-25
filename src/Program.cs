@@ -5,7 +5,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using TTG_Tools.CLI.Core;
-using TTG_Tools.CLI.Core.Headless;
 
 namespace TTG_Tools
 {
@@ -13,12 +12,16 @@ namespace TTG_Tools
     {
         public static bool FirstTime = true;
         
-        private const int ATTACH_PARENT_PROCESS = -1;
-        [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool AttachConsole(int dwProcessId);
+        private const int SW_HIDE = 0;
 
         [DllImport("kernel32.dll", SetLastError = true)]
-        private static extern bool AllocConsole();
+        private static extern IntPtr GetConsoleWindow();
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool FreeConsole();
+
+        [DllImport("user32.dll")]
+        private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
         
         [STAThread]
         static void Main(string[] args)
@@ -26,15 +29,19 @@ namespace TTG_Tools
             InitializationConfig();
             if (args.Length > 0)
             {
-                if (!AttachConsole(ATTACH_PARENT_PROCESS))
-                {
-                    AllocConsole();
-                }
                 Console.WriteLine("");
                 CliRouter.Instance.Route(args);
             }
             else
             {
+                FreeConsole();
+                // Якщо FreeConsole() не спрацював (наприклад, запуск із готового вікна), можна ще ховати:
+                var handle = GetConsoleWindow();
+                if (handle != IntPtr.Zero)
+                {
+                    ShowWindow(handle, SW_HIDE);
+                }
+                
                 ApplyDefaultFont();
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
