@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using TTG_Tools.CLI.Core;
 using TTG_Tools.CLI.Core.Headless;
@@ -12,12 +13,24 @@ namespace TTG_Tools
     {
         public static bool FirstTime = true;
         
+        private const int ATTACH_PARENT_PROCESS = -1;
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool AttachConsole(int dwProcessId);
+
+        [DllImport("kernel32.dll", SetLastError = true)]
+        private static extern bool AllocConsole();
+        
         [STAThread]
         static void Main(string[] args)
         {
             InitializationConfig();
             if (args.Length > 0)
             {
+                if (!AttachConsole(ATTACH_PARENT_PROCESS))
+                {
+                    AllocConsole();
+                }
+                Console.WriteLine("");
                 CliRouter.Instance.Route(args);
             }
             else
